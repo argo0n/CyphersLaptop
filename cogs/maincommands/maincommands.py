@@ -40,7 +40,7 @@ class MainCommands(commands.Cog):
                     ):
         reg_code = get_region_code(region)
         riot_user = await self.dbManager.get_user_by_username(username)
-        if riot_user is not None:
+        if riot_user is not False:
             return await ctx.respond(embed=user_already_exist(username, riot_user.user_id == ctx.author.id), ephemeral=True)
         await ctx.defer(ephemeral=True)
         try:
