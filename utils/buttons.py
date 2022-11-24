@@ -35,7 +35,7 @@ class confirm(discord.ui.View):
         if isinstance(self.response, discord.Message):
             await interaction.response.edit_message(view=self)
         elif isinstance(self.response, discord.Interaction):
-            await self.response.edit_original_message(view=self)
+            await interaction.response.edit_message(view=self)
         self.stop()
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)

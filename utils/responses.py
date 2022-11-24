@@ -1,4 +1,16 @@
+from typing import Literal
+
 import discord
+
+
+def updating_password(username, step: Literal[1, 2]):
+    if step == 1:
+        desc = "Verifying your credentials with Riot..."
+        color = discord.Color.dark_orange()
+    elif step == 2:
+        desc = "Encrypting and updating your password..."
+        color = discord.Color.orange()
+    return discord.Embed(title=f"Updating password for {username}", description=desc, color=color)
 
 
 # ------- Argument Error Responses -------
@@ -30,17 +42,24 @@ def user_logged_out(username):
 
 
 def user_updated(username):
-    return discord.Embed(title="User Credentials Updated", description=f"The credentials of \"{username}\" have been successfully verified and updated.", color=discord.Color.green())
+    return discord.Embed(title="User Credentials Updated", description=f"Your Riot Games account, **{username}**'s password has been successfully verified and updated.", color=discord.Color.green())
 
 
 def no_logged_in_account():
     return discord.Embed(title="No Logged In Account", description="You do not have a Riot account logged in with us.\nUse /adduser <username> <password> <region> to log in.", color=discord.Color.red())
 
+def updated_password(username):
+    return discord.Embed(title="Password Updated", description=f"The password for your Riot Games account **{username}** has been successfully updated.", color=discord.Color.green())
+
 
 # ------- Riot Authentication Errors/Responses -------
 
-def authentication_error():
-    return discord.Embed(title="Authentication Error", description="Make sure your **username** and **password** are correct and try again.\nEnsure you are using the username and password for signing in to your **Riot Account**, not your Valorant display name or Riot ID.\nIf you have updated your password, please use /setpassword <username> <password> <region> in DMs.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
+def authentication_error(is_update_or_login_command: bool = False):
+    if is_update_or_login_command:
+        remark = ""
+    else:
+        remark = "\n\nIf you have updated your password, please use /setpassword <username> <password> <region> in DMs."
+    return discord.Embed(title="Authentication Error", description=f"Make sure your **username** and **password** are correct and try again.\n\nEnsure you are using the username and password for signing in to your **Riot Account**, not your Valorant display name or Riot ID.{remark}", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
 
 
 def rate_limit_error():
@@ -92,3 +111,4 @@ def about_command():
     embed.add_field(name="License", value="Distributed under the MIT License. Copyright (c) 2022 PureAspiration", inline=False)
     embed.add_field(name="Legal", value="For any riot employees, please contact Pure#2254 regarding this bot before taking any actions on our players and users.\n\nValemporium is not endorsed by Riot Games and the developer is not liable for any damage, bans, or loss of account caused by this bot.\nRiot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.", inline=False)
     return embed
+
