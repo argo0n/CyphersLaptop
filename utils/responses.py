@@ -25,7 +25,7 @@ def user_already_exist(username, is_author: bool):
     if is_author:
         description = f"You've already logged into to **{username}** on Cypher's Laptop."
     else:
-        description = f"**{username}** is already logged into via another Discord account.\nIf you want to use your Riot account (**{username}**) on this account, log out of **{username}** on your other Discord account."
+        description = f"**{username}** is already logged into via another Discord account.\nIf you want to use your Riot Games account on this Discord account, log out of **{username}** on your other Discord account."
     return discord.Embed(title="User Already Exists", description=description, color=discord.Color.red())
 
 
@@ -34,11 +34,11 @@ def already_logged_in(username):
 
 
 def user_logged_in(username):
-    return discord.Embed(title="Successfully logged in", description=f"**{username}** has been successfully verified and logged in.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
+    return discord.Embed(title="Successfully logged in", description=f"Your Riot Games account, **{username}** has been successfully verified and logged in.\n\nIf you received a login code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
 
 
 def user_logged_out(username):
-    return discord.Embed(title="Successfully logged out", description=f"**{username}** has been successfully logged out.", color=discord.Color.green())
+    return discord.Embed(title="Successfully logged out", description=f"Your Riot Games account, **{username}** has been successfully logged out.", color=discord.Color.green())
 
 
 def user_updated(username):
@@ -46,7 +46,7 @@ def user_updated(username):
 
 
 def no_logged_in_account():
-    return discord.Embed(title="No Logged In Account", description="You do not have a Riot account logged in with us.\nUse /adduser <username> <password> <region> to log in.", color=discord.Color.red())
+    return discord.Embed(title="No Logged In Account", description="You do not have a Riot Games account logged in with Cypher's Laptop.\nUse /adduser <username> <password> <region> to log in.", color=discord.Color.red())
 
 def updated_password(username):
     return discord.Embed(title="Password Updated", description=f"The password for your Riot Games account **{username}** has been successfully updated.", color=discord.Color.green())
