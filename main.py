@@ -19,7 +19,8 @@ strfformat = "%d-%m-%y %H:%M:%S"
 
 AVAILABLE_EXTENSIONS = [
     "cogs.maincommands",
-    "cogs.reminders"
+    "cogs.reminders",
+    "cogs.errors"
 ]
 
 load_dotenv('credentials.env')
@@ -85,7 +86,8 @@ class dvvt(commands.Bot):
                 pass
             else:
                 print(f"Some databases do not exist, creating them now...")
-                await self.db.execute("""CREATE TABLE IF NOT EXISTS valorant_login(username text, password text, region text);
+                await self.db.execute("""
+                CREATE TABLE IF NOT EXISTS valorant_login(user_id bigint PRIMARY KEY NOT NULL, username text NOT NULL, password bytea NOT NULL, region text NOT NULL);
                 CREATE TABLE IF NOT EXISTS devmode(user_id bigint, devmode boolean);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")

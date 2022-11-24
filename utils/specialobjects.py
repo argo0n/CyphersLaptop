@@ -1,5 +1,8 @@
 from typing import Any, Union
 
+import asyncpg
+
+
 class _MissingSentinel:
     def __eq__(self, other):
         return False
@@ -28,3 +31,14 @@ class UserInfo:
 
 
 MISSING: Any = _MissingSentinel()
+
+
+class RiotUser:
+
+    __slots__ = ('user_id', 'username', 'password', 'region')
+
+    def __init__(self, record: asyncpg.Record):
+        self.user_id: int = record.get('user_id')
+        self.username: str = record.get('username')
+        self.password: bytes = record.get('password')
+        self.region: str = record.get('region')
