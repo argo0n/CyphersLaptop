@@ -1,0 +1,31 @@
+aiohttp
+asyncpg
+discord-ext-menus @ git+https://github.com/Rapptz/discord-ext-menus@fbb8803779373357e274e1540b368365fd9d8074
+py-cord
+alexflipnote.py @ git+https://github.com/argo0n/forked_alexflipnote.py
+inflect==6.0.0
+pillow
+python-dateutil
+python-dotenv
+typing-extensions
+urllib3
+wincertstore==0.2
+yarl
+more-itertools
+hyper
+typing
+stemming
+httpcore==0.9.1
+pytz
+h2==3.2.0
+parsedatetime
+hyperframe==5.2.0
+filetype
+stringcase==1.2.0
+unidecode==1.3.4
+Wand==0.6.8
+captcha
+stringcase==1.2.0
+unidecode==1.3.4
+Wand==0.6.8
+expr.py
