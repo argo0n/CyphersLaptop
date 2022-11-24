@@ -79,8 +79,7 @@ class MainCommands(commands.Cog):
             await self.client.db.execute("DELETE FROM valorant_login WHERE user_id = $1", ctx.author.id)
             await ctx.respond(embed=user_logged_out(riot_account.username), ephemeral=True)
 
-
-    @commands.slash_command(name="update-password", description="Update the password of your Riot account.")
+    @commands.slash_command(name="update-password", description="If you changed your password at Riot Games, update it here.")
     async def update_password(self, ctx: discord.ApplicationContext,
                               password: discord.Option(str, "Your new Riot password")):
         c = confirm(ctx, self.client, 30.0)
