@@ -5,7 +5,7 @@ from typing import Iterable, List, Optional
 from discord.ext import commands
 from utils.format import box
 
-class DVVTcontext(commands.Context):
+class CLVTcontext(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 

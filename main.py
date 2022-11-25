@@ -9,7 +9,7 @@ import datetime
 from dotenv import load_dotenv
 from discord import client
 from discord.ext import commands, tasks
-from utils.context import DVVTcontext
+from utils.context import CLVTcontext
 from utils.format import print_exception
 from utils.specialobjects import MISSING, UserInfo
 
@@ -20,7 +20,8 @@ strfformat = "%d-%m-%y %H:%M:%S"
 AVAILABLE_EXTENSIONS = [
     "cogs.maincommands",
     "cogs.reminders",
-    "cogs.errors"
+    "cogs.errors",
+    "cogs.dev"
 ]
 
 load_dotenv('credentials.env')
@@ -36,9 +37,10 @@ intents = discord.Intents(guilds=True, members=True, presences=True, messages=Tr
 allowed_mentions = discord.AllowedMentions(everyone=False, roles=False)
 
 
-class dvvt(commands.Bot):
+class clvt(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix = self.get_prefix, intents=intents, allowed_mentions=allowed_mentions, case_insensitive=True)
+        self.custom_status = False
         self.prefixes = {}
         self.uptime = None
         self.embed_color: int = 0x57F0F0
@@ -54,11 +56,11 @@ class dvvt(commands.Bot):
             print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded {ext}")
 
     async def get_context(self, message, *, cls=None):
-        context = await super().get_context(message, cls=DVVTcontext)
+        context = await super().get_context(message, cls=CLVTcontext)
         return context
 
     async def process_commands(self, message: discord.Message):
-        ctx: DVVTcontext = await self.get_context(message)
+        ctx: CLVTcontext = await self.get_context(message)
         await self.invoke(ctx)
 
     async def on_message(self, message):
@@ -71,7 +73,7 @@ class dvvt(commands.Bot):
 
     async def on_ready(self):
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded all Server Configurations")
-        all_tables = ["valorant_login", "devmode"]
+        all_tables = ['prefixes', "valorant_login", "devmode"]
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Checking for missing databases")
         tables = await self.db.fetch("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
         tables = [i.get('table_name') for i in tables]
@@ -88,7 +90,8 @@ class dvvt(commands.Bot):
                 print(f"Some databases do not exist, creating them now...")
                 await self.db.execute("""
                 CREATE TABLE IF NOT EXISTS valorant_login(user_id bigint PRIMARY KEY NOT NULL, username text NOT NULL, password bytea NOT NULL, region text NOT NULL);
-                CREATE TABLE IF NOT EXISTS devmode(user_id bigint, devmode boolean);
+                CREATE TABLE IF NOT EXISTS devmode(user_id bigint, enabled boolean);
+                CREATE TABLE IF NOT EXISTS prefixes(guild_id bigint PRIMARY KEY NOT NULL, prefix text NOT NULL);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")
 
@@ -97,7 +100,7 @@ class dvvt(commands.Bot):
         return self.get_guild(871734809154707467).get_channel(871737028105109574)
 
     async def on_guild_join(self, guild):
-        await self.db.execute('INSERT INTO prefixes VALUES ($1, $2) ON CONFLICT DO UPDATE SET prefix=$2', guild.id, "dv.")
+        await self.db.execute('INSERT INTO prefixes VALUES ($1, $2) ON CONFLICT DO UPDATE SET prefix=$2', guild.id, "cl.")
 
     async def get_prefix(self, message):
         if message.guild is None:
@@ -107,7 +110,7 @@ class dvvt(commands.Bot):
             query = "SELECT prefix FROM prefixes WHERE guild_id=$1"
             data = await self.db.fetchrow(query, guild_id)
             if data is None:
-                await self.db.execute("INSERT INTO prefixes VALUES ($1, $2)", guild_id, 'dv.')
+                await self.db.execute("INSERT INTO prefixes VALUES ($1, $2)", guild_id, 'cl.')
                 data = {}
             prefix = self.prefixes.setdefault(guild_id, data.get("prefix") or '.')
         if message.content.lower().startswith(prefix):
@@ -117,13 +120,6 @@ class dvvt(commands.Bot):
     async def set_prefix(self, guild, prefix):
         await self.db.execute('UPDATE prefixes SET prefix=$1 WHERE guild_id=$2', prefix, guild.id)
         self.prefixes[guild.id] = prefix
-
-    async def get_guild_settings(self, guild_id):
-        serverconf = self.serverconfig.get(guild_id, None)
-        if serverconf is None:
-            serverconf = await self.fetch_guild_settings(guild_id)
-            self.serverconfig[guild_id] = serverconf
-        return serverconf
 
     async def fetch_user_info(self, user_id):
         userinfo = await self.db.fetchrow("SELECT * FROM userinfo WHERE user_id=$1", user_id)
@@ -164,5 +160,5 @@ class dvvt(commands.Bot):
             self.run(token)
 
 if __name__ == '__main__':
-    client = dvvt()
+    client = clvt()
     client.starter()

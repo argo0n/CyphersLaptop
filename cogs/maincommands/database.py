@@ -41,13 +41,17 @@ class DBManager:
         user = await self.pool_pg.fetchrow("SELECT * FROM valorant_login WHERE username = $1", username)
         if user is None:
             return False
-        return RiotUser(user)
+        user_obj = RiotUser(user)
+        user_obj.password = self.decrypt_password(user_obj.password)
+        return user_obj
 
     async def get_user_by_user_id(self, user_id):
         user = await self.pool_pg.fetchrow("SELECT * FROM valorant_login WHERE user_id = $1", user_id)
         if user is None:
             return False
-        return RiotUser(user)
+        user_obj = RiotUser(user)
+        user_obj.password = self.decrypt_password(user_obj.password)
+        return user_obj
 
     async def get_all_users(self):
         users = await self.pool_pg.fetch("SELECT * FROM valorant_login")

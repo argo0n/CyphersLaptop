@@ -1,8 +1,8 @@
 import discord
 from discord.ext import commands
 
-from main import dvvt
-from utils import riot_authorization
+from main import clvt
+from utils import riot_authorization, get_store
 from utils.helper import get_region_code
 from .database import DBManager
 from utils.responses import *
@@ -11,7 +11,7 @@ from utils.buttons import confirm
 
 class MainCommands(commands.Cog):
     def __init__(self, client):
-        self.client: dvvt = client
+        self.client: clvt = client
         self.dbManager: DBManager = DBManager(self.client.db)
 
     @commands.Cog.listener()
@@ -125,7 +125,53 @@ class MainCommands(commands.Cog):
             await self.client.db.execute("UPDATE valorant_login SET password = $1 WHERE user_id = $2", password, ctx.author.id)
             await ctx.respond(embed=user_updated(riot_account.username), ephemeral=True)
 
+    @commands.slash_command(name="store", description="View your VALORANT store.")
+    async def store(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, max_length=6, required=False) = None):
+        riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if riot_account:
+            await ctx.defer(ephemeral=True)
+        else:
+            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
+        try:
+            auth = riot_authorization.RiotAuth()
+            await auth.authorize(riot_account.username, riot_account.password, multifactor_code=multifactor_code)
+        except riot_authorization.Exceptions.RiotAuthenticationError:
+            await ctx.respond(embed=authentication_error())
+            print("Authentication error")
+            return
+        except riot_authorization.Exceptions.RiotRatelimitError:
+            await ctx.respond(embed=rate_limit_error())
+            print("Rate limited")
+            return
+        except riot_authorization.Exceptions.RiotMultifactorError:
+            # No multifactor provided check
+            if multifactor_code is None:
+                await ctx.respond(embed=multifactor_detected())
+                print("Multifactor detected")
+                return
+            await ctx.respond(embed=multifactor_error())
+            print("Multifactor authentication error")
+            return
+        headers = {
+            "Authorization": f"Bearer {auth.access_token}",
+            "User-Agent": riot_account.username,
+            "X-Riot-Entitlements-JWT": auth.entitlements_token,
+            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+        }
+        store = await get_store.getStore(headers, auth.user_id, riot_account.region)
+        try:
+            for item in store[0]:
+                embed = discord.Embed(title=item[0], description=f"Cost: {item[1]} Valorant Points",
+                                      color=discord.Color.gold())
+                embed.set_thumbnail(url=item[2])
+                await ctx.send(embed=embed)
+        except discord.errors.Forbidden:
+            await ctx.respond(embed=permission_error())
+        else:
+            embed = discord.Embed(title="Offer ends in", description=store[1], color=discord.Color.gold())
+            await ctx.send(embed=embed)
+        print("Store fetch successful")
+        return
 
-
-
-
+    #@commands.slash_command(name=)""

@@ -6,9 +6,9 @@ import contextlib
 from discord import ui
 from typing import Optional, Any, Union, Dict, Type, Iterable
 from functools import partial
-from utils.context import DVVTcontext
+from utils.context import CLVTcontext
 from discord.ext import commands
-from utils.context import DVVTcontext
+from utils.context import CLVTcontext
 from utils.helper import BaseEmbed
 
 class SingleURLButton(discord.ui.View):
@@ -17,7 +17,7 @@ class SingleURLButton(discord.ui.View):
         self.add_item(discord.ui.Button(label=text, url=link, emoji=emoji))
 
 class confirm(discord.ui.View):
-    def __init__(self, ctx: Union[DVVTcontext, discord.ApplicationContext], client, timeout):
+    def __init__(self, ctx: Union[CLVTcontext, discord.ApplicationContext], client, timeout):
         self.timeout = timeout or 30
         self.context = ctx
         self.response = None
@@ -121,7 +121,7 @@ class ViewButtonIteration(BaseView):
                     self.add_item(button(style=style, row=c, selected=button_col))
 
 class ViewAuthor(BaseView):
-    def __init__(self, ctx: DVVTcontext, *args: Any, **kwargs: Any):
+    def __init__(self, ctx: CLVTcontext, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
         self.context = ctx
         self.is_command = ctx.command is not None
