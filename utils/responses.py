@@ -28,31 +28,31 @@ def user_already_exist(username, is_author: bool):
     if is_author:
         description = f"You've already logged into to **{username}** on Cypher's Laptop."
     else:
-        description = f"**{username}** is already logged into via another Discord account.\nIf you want to use your Riot Games account on this Discord account, log out of **{username}** on your other Discord account."
+        description = f"**{username}** is already logged into via another Discord account.\nIf you want to use your Riot account on this Discord account, </logout:1045213188209258519> of **{username}** on your other Discord account."
     return discord.Embed(title="User Already Exists", description=description, color=discord.Color.red())
 
 
 def already_logged_in(username):
-    return discord.Embed(title="Already Logged In", description=f"You are already logged in with the Riot Games account **{username}**.\nYou can only add one account at a time.", color=discord.Color.red())
+    return discord.Embed(title="Already Logged In", description=f"You are already logged in with the Riot account **{username}**.\nYou can only add one account at a time.", color=discord.Color.red())
 
 
 def user_logged_in(username):
-    return discord.Embed(title="Successfully logged in", description=f"Your Riot Games account, **{username}** has been successfully verified and logged in.\n\nIf you received a login code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
+    return discord.Embed(title="Successfully logged in", description=f"Your Riot account, **{username}** has been successfully verified and logged in.\n\nIf you received a login MFA code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
 
 
 def user_logged_out(username):
-    return discord.Embed(title="Successfully logged out", description=f"Your Riot Games account, **{username}** has been successfully logged out.", color=discord.Color.green())
+    return discord.Embed(title="Successfully logged out", description=f"Your Riot account, **{username}** has been successfully logged out.", color=discord.Color.green())
 
 
 def user_updated(username):
-    return discord.Embed(title="User Credentials Updated", description=f"Your Riot Games account, **{username}**'s password has been successfully verified and updated.", color=discord.Color.green())
+    return discord.Embed(title="User Credentials Updated", description=f"Your Riot account, **{username}**'s password has been successfully verified and updated.", color=discord.Color.green())
 
 
 def no_logged_in_account():
-    return discord.Embed(title="No Logged In Account", description="You do not have a Riot Games account logged in with Cypher's Laptop.\nUse /adduser <username> <password> <region> to log in.", color=discord.Color.red())
+    return discord.Embed(title="No Logged In Account", description="You do not have a Riot account logged in with Cypher's Laptop.\nUse </login:1045213188209258518> <username> <password> <region> to log in to your Riot account.", color=discord.Color.red())
 
 def updated_password(username):
-    return discord.Embed(title="Password Updated", description=f"The password for your Riot Games account **{username}** has been successfully updated.", color=discord.Color.green())
+    return discord.Embed(title="Password Updated", description=f"The password for your Riot account **{username}** has been successfully updated.", color=discord.Color.green())
 
 def updated_weapon_database():
     return discord.Embed(title="Weapon Skin Database Updated", description="The weapon database has been updated successfully.", color=discord.Color.green())
@@ -64,8 +64,8 @@ def authentication_error(is_update_or_login_command: bool = False):
     if is_update_or_login_command:
         remark = ""
     else:
-        remark = "\n\nIf you have updated your password, please use /setpassword <username> <password> <region> in DMs."
-    return discord.Embed(title="Authentication Error", description=f"Make sure your **username** and **password** are correct and try again.\n\nEnsure you are using the username and password for signing in to your **Riot Account**, not your Valorant display name or Riot ID.{remark}", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
+        remark = "\n\nIf you have updated your password, please use </update-password:1045212370944929802> <password>."
+    return discord.Embed(title="Authentication Error", description=f"Make sure your **username** and **password** are correct and try again.\n\nEnsure you are using the username and password for signing in to your **Riot Account**, not your VALORANT display name or Riot ID.{remark}", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
 
 
 def rate_limit_error():
@@ -73,11 +73,11 @@ def rate_limit_error():
 
 
 def multifactor_detected():
-    return discord.Embed(title="Enter 2 Factor Authentication (2FA) Code", description="Your account has 2FA enabled.\nCheck your emails for the code and use the command again: /store <username> <multifactor_code>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
+    return discord.Embed(title="Enter 2 Factor Authentication (2FA) Code", description="Your account has 2FA enabled.\nCheck your emails for the code and use the command again: </store:1045171702612639836> <multifactor_code>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
 
 
 def multifactor_error():
-    return discord.Embed(title="Multifactor Failed", description="The 2FA code you entered was incorrect.\nPlease confirm your code or request a new code with the command: /store <username> <region>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
+    return discord.Embed(title="Multifactor Failed", description="The 2FA code you entered was incorrect.\nPlease confirm your code or request a new code with the command: </store:1045171702612639836> <multifactor_code>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
 
 def skin_not_found(skin_name):
     return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name {skin_name}.", color=discord.Color.red())
@@ -143,27 +143,20 @@ def unknown_error():
 
 # ------- Informational Responses -------
 
-def help_command():
+def help_command(is_dev):
     embed = discord.Embed(title="Valemporium - Help", description="All available commands and important command arguments", color=discord.Color.blue())
-    embed.add_field(name="/store", value="Retrieves the store of a player", inline=False)
-    embed.add_field(name="/balance", value="Retrieves the balance of your Valorant account", inline=False)
-    embed.add_field(name="/adduser", value="Saves login credentials to the database (ONLY use this command in DMs)", inline=False)
-    embed.add_field(name="/deluser", value="Deletes login credentials from the database (ONLY use this command in DMs)", inline=False)
-    embed.add_field(name="/setpassword", value="Edits the password of the user in the database (ONLY use this command in DMs)", inline=False)
-    embed.add_field(name="/about", value="About Valemporium", inline=False)
-    embed.add_field(name="Region Selection", value="ap - Asia/Pacific\neu - Europe\nkr - Korea\nna - North America, Brazil, and PBE", inline=False)
-    embed.add_field(name="Support Server", value="For Discord support, join the [Valemporium support server](https://discord.gg/ejvddZr4Dw)", inline=False)
-    embed.add_field(name="⠀", value="Enter your riot username, not your Valorant display name\nOnly enter passwords in direct messages with the bot", inline=False)
+    embed.add_field(name="</store:1045171702612639836>", value="Retrieves your VALORANT store.", inline=True)
+    embed.add_field(name="</skin:1045732151506767973>", value="Search for a VALORANT gun skin.", inline=True)
+    embed.add_field(name="</invite:1045732151506767974>", value="Invite Cypher's Laptop to your server!", inline=True)
+    embed.add_field(name="</balance:1045213188209258517>", value="View your <:vp:1045605973005434940> Balance.", inline=True)
+    embed.add_field(name="</update-password:1045212370944929802>", value="Update your Riot account password in Cypher's Laptop if you have changed it.", inline=True)
+    embed.add_field(name="</login:1045213188209258518>", value="Log in to Cypher's Laptop with your Riot account. \nYour password is encrypted and stored securely when you log in.", inline=False)
+    embed.add_field(name="</logout:1045213188209258519>", value="Log out of Cypher's Laptop.\nYour credentials are immediately deleted from the database once you log out.", inline=True)
+    if is_dev:
+        embed.add_field(name="DEVELOPER", value="\u200b", inline=False)
+        embed.add_field(name="</update-skins-database:1045634432268255303>", value="Manually update the internal VALORANT gun skins database.", inline=True)
+        embed.add_field(name="</get-raw-credentials:1045622620500000821>", value="Get raw credentials of your Riot account to communicate with the VALORANT API for testing.", inline=True)
+    embed.set_thumbnail(url="https://cdn.discordapp.com/avatars/844489130822074390/bfe9b52d135dce826739ba0adbe31cfd.png?size=1024")
     return embed
 
-
-def about_command():
-    embed = discord.Embed(title="Valemporium - About", description="About Valemporium", color=discord.Color.blue())
-    embed.add_field(name="Developer", value="Bot created and coded by Pure#2254", inline=False)
-    embed.add_field(name="Privacy and Security", value="All passwords and credentials are encrypted with Fernet and stored in a secure database.", inline=False)
-    embed.add_field(name="Source", value="This project is open source and can be viewed on [Github](https://github.com/PureAspiration/Valemporium).", inline=False)
-    embed.add_field(name="Built with", value="This project is heavy based on [Valorina](https://github.com/sanjaybaskaran01/Valorina), [python-riot-auth](https://github.com/floxay/python-riot-auth), PyMongo.", inline=False)
-    embed.add_field(name="License", value="Distributed under the MIT License. Copyright (c) 2022 PureAspiration", inline=False)
-    embed.add_field(name="Legal", value="For any riot employees, please contact Pure#2254 regarding this bot before taking any actions on our players and users.\n\nValemporium is not endorsed by Riot Games and the developer is not liable for any damage, bans, or loss of account caused by this bot.\nRiot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.", inline=False)
-    return embed
 

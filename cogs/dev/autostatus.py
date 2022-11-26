@@ -14,7 +14,7 @@ class AutoStatus(commands.Cog):
         if self.client.custom_status is False:
             try:
                 await self.client.wait_until_ready()
-                self.status = discord.Activity(name="your VALORANT store", type=discord.ActivityType.watching)
+                self.status = discord.Activity(name="your VALORANT Store", type=discord.ActivityType.watching)
                 um = discord.Status.online
                 await self.client.change_presence(status=um, activity=self.status)
             except Exception as e:
