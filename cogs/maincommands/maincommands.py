@@ -50,12 +50,50 @@ class MainCommands(UpdateSkinDB, commands.Cog):
         else:
             return [s.displayName for s in sk[:25]]
 
-
-    @commands.slash_command(name="balance", description="View your VALORANT points balance.")
+    @commands.slash_command(name="balance", description="View your VALORANT points and Radianite balance.")
     async def balance(self, ctx: discord.ApplicationContext,
                       multifactor_code: discord.Option(str, "Your multifactor code", required=False) = None):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if riot_account:
+            await ctx.defer()
+        else:
+            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
+        try:
+            auth = riot_authorization.RiotAuth()
+            await auth.authorize(riot_account.username, riot_account.password, multifactor_code=multifactor_code)
+        except riot_authorization.Exceptions.RiotAuthenticationError:
+            await ctx.respond(embed=authentication_error())
+            print("Authentication error")
+            return
+        except riot_authorization.Exceptions.RiotRatelimitError:
+            await ctx.respond(embed=rate_limit_error())
+            print("Rate limited")
+            return
+        except riot_authorization.Exceptions.RiotMultifactorError:
+            # No multifactor provided check
+            if multifactor_code is None:
+                await ctx.respond(embed=multifactor_detected())
+                print("Multifactor detected")
+                return
+            await ctx.respond(embed=multifactor_error())
+            print("Multifactor authentication error")
+            return
+        headers = {
+            "Authorization": f"Bearer {auth.access_token}",
+            "User-Agent": riot_account.username,
+            "X-Riot-Entitlements-JWT": auth.entitlements_token,
+            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+        }
+        vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
+        embed = discord.Embed(title=f"{riot_account.username}'s Balance",
+                              description= f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
+                              color=discord.Color.blurple())
+        await ctx.respond(embed=embed)
+
+
 
     @commands.slash_command(name="login", description="Log in with your Riot account. Your password is encrypted and stored securely when you log in.")
     async def login(self, ctx: discord.ApplicationContext,
