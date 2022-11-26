@@ -2,6 +2,9 @@ from typing import Literal
 
 import discord
 
+from utils.format import comma_number
+from utils.specialobjects import GunSkin
+
 
 def updating_password(username, step: Literal[1, 2]):
     if step == 1:
@@ -51,6 +54,9 @@ def no_logged_in_account():
 def updated_password(username):
     return discord.Embed(title="Password Updated", description=f"The password for your Riot Games account **{username}** has been successfully updated.", color=discord.Color.green())
 
+def updated_weapon_database():
+    return discord.Embed(title="Weapon Skin Database Updated", description="The weapon database has been updated successfully.", color=discord.Color.green())
+
 
 # ------- Riot Authentication Errors/Responses -------
 
@@ -72,6 +78,55 @@ def multifactor_detected():
 
 def multifactor_error():
     return discord.Embed(title="Multifactor Failed", description="The 2FA code you entered was incorrect.\nPlease confirm your code or request a new code with the command: /store <username> <region>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
+
+def skin_not_found(skin_name):
+    return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name {skin_name}.", color=discord.Color.red())
+def not_ready():
+    return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
+
+def skin_embed(skin: GunSkin):
+
+    tier_uuids = [
+        {
+            "uuid": "12683d76-48d7-84a3-4e09-6985794f0445",
+            "name": "Select",
+            "color": 0x5CA3E3,
+            "emoji": "<:SE:1045730725200154754>"
+        },
+        {
+            "uuid": "0cebb8be-46d7-c12a-d306-e9907bfc5a25",
+            "name": "Deluxe",
+            "color": 0x14C8AB,
+            "emoji": "<:DE:1045730727259537459>"
+        },
+        {
+            "uuid": "60bca009-4182-7998-dee7-b8a2558dc369",
+            "name": "Premium",
+            "color": 0xCF4F88,
+            "emoji": "<:PE:1045730729671266395>"
+        },
+        {
+            "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
+            "name": "Exclusive",
+            "color": 0xFF9054,
+            "emoji": "<:XE:1045730735241302016>"
+        },
+        {
+            "uuid": "411e4a55-4e59-7757-41f0-86a53f101bb5",
+            "name": "Ultra",
+            "color": 0xF9D368,
+            "emoji": "<:UE:1045730732691161188>"
+        }
+    ]
+    tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
+    print(skin)
+    cost = f"<:vp:1045605973005434940> {comma_number(skin.cost)}" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+    embed = discord.Embed(title=skin.displayName, description=f" {cost}")
+    if tier is not None:
+        embed.color = tier["color"]
+        embed.description += f"\n{tier['emoji']} **{tier['name']}** tier"
+    embed.set_image(url=skin.displayIcon)
+    return embed
 
 
 # ------- Discord Bot Setup Error Responses -------

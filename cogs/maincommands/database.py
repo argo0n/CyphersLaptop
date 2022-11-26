@@ -1,7 +1,7 @@
 import asyncpg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-from utils.specialobjects import RiotUser
+from utils.specialobjects import RiotUser, GunSkin
 import os
 
 load_dotenv()
@@ -56,4 +56,18 @@ class DBManager:
     async def get_all_users(self):
         users = await self.pool_pg.fetch("SELECT * FROM valorant_login")
         return [RiotUser(user) for user in users]
+
+    async def get_all_skins(self) -> list[GunSkin]:
+        all_skins_raw = await self.pool_pg.fetch("SELECT * FROM skins")
+        skins = []
+        for skin in all_skins_raw:
+            sk = GunSkin().from_record(skin)
+            skins.append(sk)
+        return skins
+
+    async def get_skin(self, skin_name) -> GunSkin:
+        skin = await self.pool_pg.fetchrow("SELECT * FROM skins WHERE LOWER(displayname) = $1", skin_name.lower())
+        if skin is None:
+            return False
+        return GunSkin().from_record(skin)
 

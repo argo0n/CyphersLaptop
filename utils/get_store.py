@@ -12,6 +12,21 @@ async def getStore(headers, user_id, region):
     return await getSkinDetails(headers, skin_panel, region)
 
 
+async def getAllSkins():
+    async with aiohttp.ClientSession() as session:
+         async with session.get(f"https://valorant-api.com/v1/weapons/skins") as r:
+             data = await r.json()
+    return data.get('data')
+
+
+
+async def getRawOffers(headers, region):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(f"https://pd.{region}.a.pvp.net/store/v1/offers/",
+                               headers=headers) as r:  # gets all sellable skins from the official VALORANT API, along with their costs ?
+            offers = await r.json()
+    return offers["Offers"]
+
 async def getSkinDetails(headers, skin_panel, region):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://pd.{region}.a.pvp.net/store/v1/offers/", headers=headers) as r:  # gets all sellable skins from the official VALORANT API, along with their costs ?

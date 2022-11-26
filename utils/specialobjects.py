@@ -42,3 +42,33 @@ class RiotUser:
         self.username: str = record.get('username')
         self.password: bytes = record.get('password')
         self.region: str = record.get('region')
+
+    def from_method(self, user_id: int, username: str, password: bytes, region: str):
+        self.user_id = user_id
+        self.username = username
+        self.password = password
+        self.region = region
+        return self
+
+class GunSkin:
+
+    __slots__ = ('uuid', 'displayName', 'cost', 'displayIcon', 'contentTierUUID')
+
+    def __init__(self):
+        self.uuid: str = None
+        self.displayName: str = None
+        self.cost: int = None
+        self.displayIcon: str = None
+        self.contentTierUUID: str = None
+
+    def from_record(self, record: asyncpg.Record):
+        self.uuid = record.get('uuid')
+        self.displayName = record.get('displayname')
+        self.cost = record.get('cost')
+        self.displayIcon = record.get('displayicon')
+        self.contentTierUUID = record.get('contenttieruuid')
+        return self
+
+    def __repr__(self):
+        return f"<GunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID}>"
+
