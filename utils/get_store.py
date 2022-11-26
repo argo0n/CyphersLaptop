@@ -4,12 +4,16 @@ import aiohttp
 from .time import humanize_timedelta
 
 
-async def getStore(headers, user_id, region):
+async def getStore(headers, user_id, region) -> (list[str], int):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://pd.{region}.a.pvp.net/store/v2/storefront/{user_id}/", headers=headers) as r:  # gets user's store, returns a json['SingleItemOffers'] that has a list of VALORANT skins the user has in the shop in the form of UUIDs
             data = await r.json()
     skin_panel = data['SkinsPanelLayout']
-    return await getSkinDetails(headers, skin_panel, region)
+    skins = []
+    for skin_uuid in skin_panel['SingleItemOffers']:
+        skin_uuid = skin_uuid.lower()
+        skins.append(skin_uuid)
+    return skins, skin_panel['SingleItemOffersRemainingDurationInSeconds']
 
 
 async def getAllSkins():

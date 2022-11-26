@@ -65,8 +65,14 @@ class DBManager:
             skins.append(sk)
         return skins
 
-    async def get_skin(self, skin_name) -> GunSkin:
+    async def get_skin_by_name(self, skin_name) -> GunSkin:
         skin = await self.pool_pg.fetchrow("SELECT * FROM skins WHERE LOWER(displayname) = $1", skin_name.lower())
+        if skin is None:
+            return False
+        return GunSkin().from_record(skin)
+    
+    async def get_skin_by_uuid(self, skin_uuid) -> GunSkin:
+        skin = await self.pool_pg.fetchrow("SELECT * FROM skins WHERE uuid = $1", skin_uuid)
         if skin is None:
             return False
         return GunSkin().from_record(skin)

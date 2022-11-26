@@ -10,6 +10,7 @@ from main import clvt
 from utils import riot_authorization, get_store, checks
 from utils.helper import get_region_code
 from utils.specialobjects import GunSkin
+from utils.time import humanize_timedelta
 from .database import DBManager
 from utils.responses import *
 from utils.buttons import confirm
@@ -164,7 +165,7 @@ class MainCommands(commands.Cog):
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
-            await ctx.defer(ephemeral=True)
+            await ctx.defer()
         else:
             return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         try:
@@ -194,18 +195,15 @@ class MainCommands(commands.Cog):
             "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
-        store = await get_store.getStore(headers, auth.user_id, riot_account.region)
-        try:
-            for item in store[0]:
-                embed = discord.Embed(title=item[0], description=f"Cost: {item[1]} Valorant Points",
-                                      color=discord.Color.gold())
-                embed.set_thumbnail(url=item[2])
-                await ctx.send(embed=embed)
-        except discord.errors.Forbidden:
-            await ctx.respond(embed=permission_error())
-        else:
-            embed = discord.Embed(title="Offer ends in", description=store[1], color=discord.Color.gold())
-            await ctx.send(embed=embed)
+        skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
+        embeds = []
+        embeds.append(discord.Embed(title="Your current shop resets:", description=f"In **{humanize_timedelta(seconds=remaining)}**", color=3092790))
+        for uuid in skin_uuids:
+            sk = await self.dbManager.get_skin_by_uuid(uuid)
+            if sk is not False:
+                embeds.append(skin_embed(sk))
+
+        await ctx.respond(embeds=embeds)
         print("Store fetch successful")
         return
 
@@ -258,23 +256,24 @@ class MainCommands(commands.Cog):
     async def skin(self, ctx: discord.ApplicationContext, name: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
-        skin = await self.dbManager.get_skin(name)
+        skin = await self.dbManager.get_skin_by_name(name)
         if skin:
             await ctx.respond(embed=skin_embed(skin))
         else:
             await ctx.respond(embed=skin_not_found(name))
 
-
     @commands.slash_command(name="update_skins_database", description="Updates the internal skin database ")
     @discord.default_permissions(administrator=True)
     @checks.dev()
-    async def update_skins_database(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, "Your Riot multifactor code", required=False) = None):
+    async def update_skins_database(self, ctx: discord.ApplicationContext,
+                                    multifactor_code: discord.Option(str, "Your Riot multifactor code", required=False) = None):
         riot_account = await self.dbManager.get_user_by_user_id(0)
         if riot_account:
             await ctx.defer(ephemeral=True)
         else:
             e = no_logged_in_account()
-            e.description = "In the database, add a Riot Games account with the user ID 0 to use this command. This account will be used to fetch data from the Riot API without using your own account."
+            e.description = "In the database, add a Riot Games account with the user ID 0 to use this command. This " \
+                            "account will be used to fetch data from the Riot API without using your own account. "
             return await ctx.respond(embed=e, ephemeral=True)
         try:
             auth = riot_authorization.RiotAuth()
@@ -325,7 +324,10 @@ class MainCommands(commands.Cog):
                 skins.append(i)
                 break
         for i in skins:
-            await self.client.db.execute("INSERT INTO skins(uuid, displayname, cost, displayicon, contenttieruuid) VALUES ($1, $2, $3, $4, $5) ON CONFLICT(uuid) DO UPDATE SET displayName = $2, cost = $3, displayIcon = $4, contenttieruuid = $5", i.uuid, i.displayName, i.cost, i.displayIcon, i.contentTierUUID)
+            await self.client.db.execute("INSERT INTO skins(uuid, displayname, cost, displayicon, contenttieruuid) "
+                                         "VALUES ($1, $2, $3, $4, $5) ON CONFLICT(uuid) DO UPDATE SET displayName = "
+                                         "$2, cost = $3, displayIcon = $4, contenttieruuid = $5", i.uuid,
+                                         i.displayName, i.cost, i.displayIcon, i.contentTierUUID)
         await ctx.respond(embed=updated_weapon_database())
 
     @commands.slash_command(name="invite", description="Invite Cypher's Laptop to your server.")
