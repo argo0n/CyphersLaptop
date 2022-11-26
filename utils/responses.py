@@ -125,7 +125,7 @@ def skin_embed(skin: GunSkin):
     if tier is not None:
         embed.color = tier["color"]
         embed.description += f"\n{tier['emoji']} **{tier['name']}** tier"
-    embed.set_image(url=skin.displayIcon)
+    embed.set_thumbnail(url=skin.displayIcon)
     return embed
 
 

@@ -14,7 +14,7 @@ from utils.specialobjects import GunSkin
 from utils.time import humanize_timedelta
 from .database import DBManager
 from utils.responses import *
-from utils.buttons import confirm, SingleURLButton
+from utils.buttons import confirm, SingleURLButton, ThumbnailToImage
 import os
 from dotenv import load_dotenv
 
@@ -195,7 +195,7 @@ class MainCommands(UpdateSkinDB, commands.Cog):
             await ctx.respond(embed=user_updated(riot_account.username), ephemeral=True)
 
     @commands.slash_command(name="store", description="Retrieves your VALORANT Store.")
-    async def store(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, max_length=6, required=False) = None):
+    async def store(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, min_length=6, max_length=6, required=False) = None):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -239,7 +239,7 @@ class MainCommands(UpdateSkinDB, commands.Cog):
             if sk is not False:
                 embeds.append(skin_embed(sk))
 
-        await ctx.respond(embeds=embeds)
+        await ctx.respond(embeds=embeds, view=ThumbnailToImage(ctx))
         print("Store fetch successful")
         return
 
@@ -294,7 +294,7 @@ class MainCommands(UpdateSkinDB, commands.Cog):
             return await ctx.respond(embed=not_ready())
         skin = await self.dbManager.get_skin_by_name(name)
         if skin:
-            await ctx.respond(embed=skin_embed(skin))
+            await ctx.respond(embed=skin_embed(skin), view=ThumbnailToImage(ctx))
         else:
             await ctx.respond(embed=skin_not_found(name))
 

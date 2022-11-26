@@ -144,3 +144,38 @@ class ViewAuthor(BaseView):
                 await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
         return True
+
+
+class ThumbnailToImage(discord.ui.View):
+    def __init__(self, ctx: discord.ApplicationContext):
+        self.ctx = ctx
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"))
+    async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
+        new_embeds = []
+        for embed in interaction.message.embeds:
+            if button.label == "Expand images":
+                new_label = "Collapse images"
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+                if embed.thumbnail:
+                    embed.set_image(url=embed.thumbnail.url)
+                    embed.set_thumbnail(url=discord.Embed.Empty)
+            elif button.label == "Collapse images":
+                new_label = "Expand images"
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+                if embed.image:
+                    embed.set_thumbnail(url=embed.image.url)
+                    embed.set_image(url=discord.Embed.Empty)
+            new_embeds.append(embed)
+        button.label = new_label
+        button.emoji = new_emoji
+        await interaction.response.edit_message(embeds=new_embeds, view=self)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        ctx = self.ctx
+        author = ctx.author
+        if interaction.user != author:
+            await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
+            return False
+        return True
