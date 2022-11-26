@@ -74,7 +74,7 @@ class clvt(commands.Bot):
 
     async def on_ready(self):
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded all Server Configurations")
-        all_tables = ['prefixes', "valorant_login", "devmode", "skins"]
+        all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist"]
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Checking for missing databases")
         tables = await self.db.fetch("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
         tables = [i.get('table_name') for i in tables]
@@ -94,6 +94,7 @@ class clvt(commands.Bot):
                 CREATE TABLE IF NOT EXISTS devmode(user_id bigint, enabled boolean);
                 CREATE TABLE IF NOT EXISTS skins(uuid text PRIMARY KEY NOT NULL, displayName text not null, displayIcon text, cost int, contentTierUUID text);
                 CREATE TABLE IF NOT EXISTS prefixes(guild_id bigint PRIMARY KEY NOT NULL, prefix text NOT NULL);
+                CREATE TABLE IF NOT EXISTS wishlist(user_id bigint NOT NULL, skin_uuid text NOT NULL);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")
 

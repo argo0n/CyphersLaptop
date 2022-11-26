@@ -76,4 +76,24 @@ class DBManager:
         if skin is None:
             return False
         return GunSkin().from_record(skin)
+    
+    async def get_user_wishlist(self, user_id):
+        wishlist = await self.pool_pg.fetch("SELECT * FROM wishlist WHERE user_id = $1", user_id)
+        return [wish.get("skin_uuid") for wish in wishlist]
+    
+    async def add_skin_to_wishlist(self, user_id, skin_uuid):
+        if not await self.get_skin_by_uuid(skin_uuid):
+            return False
+        if skin_uuid in await self.get_user_wishlist(user_id):
+            return False
+        await self.pool_pg.fetchval("INSERT INTO wishlist (user_id, skin_uuid) VALUES ($1, $2)", user_id, skin_uuid)
+        return True
+
+    async def remove_skin_from_wishlist(self, user_id, skin_uuid):
+        if not await self.get_skin_by_uuid(skin_uuid):
+            return False
+        if skin_uuid not in await self.get_user_wishlist(user_id):
+            return False
+        await self.pool_pg.fetchval("DELETE FROM wishlist WHERE user_id = $1 AND skin_uuid = $2", user_id, skin_uuid)
+        return True
 

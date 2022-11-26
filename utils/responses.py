@@ -57,6 +57,18 @@ def updated_password(username):
 def updated_weapon_database():
     return discord.Embed(title="Weapon Skin Database Updated", description="The weapon database has been updated successfully.", color=discord.Color.green())
 
+def skin_added_to_wishlist(skin_name):
+    return discord.Embed(title="Added to Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been added to your wishlist.", color=discord.Color.green())
+
+def skin_already_on_wishlist(skin_name):
+    return discord.Embed(title="Already on Wishlist", description=f"<:DVB_False:887589731515392000> **{skin_name}** is already on your wishlist.", color=discord.Color.red())
+
+def skin_removed_from_wishlist(skin_name):
+    return discord.Embed(title="Removed from Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been removed from your wishlist.", color=discord.Color.green())
+
+def skin_not_on_wishlist(skin_name):
+    return discord.Embed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.", color=discord.Color.red())
+
 
 # ------- Riot Authentication Errors/Responses -------
 

@@ -19,11 +19,12 @@ import os
 from dotenv import load_dotenv
 
 from .update_skin_db import UpdateSkinDB
+from .wishlist import WishListManager
 
 load_dotenv()
 
 
-class MainCommands(UpdateSkinDB, commands.Cog):
+class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
     def __init__(self, client):
         self.client: clvt = client
         self.dbManager: DBManager = DBManager(self.client.db)
