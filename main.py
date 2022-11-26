@@ -3,6 +3,7 @@ import os
 import time
 from typing import Optional, Union, Tuple
 
+import aiohttp
 import discord
 import asyncpg
 import datetime
@@ -33,7 +34,7 @@ port = int(os.getenv('dbPORT'))
 password = os.getenv('dbPASSWORD')
 
 
-intents = discord.Intents(guilds=True, members=True, presences=True, messages=True, reactions=True, emojis=True, invites=True, voice_states=True, message_content=True, typing=True)
+intents = discord.Intents(messages=True, message_content=True)
 allowed_mentions = discord.AllowedMentions(everyone=False, roles=False)
 
 
@@ -98,7 +99,7 @@ class clvt(commands.Bot):
 
     @property
     def error_channel(self):
-        return self.get_guild(871734809154707467).get_channel(871737028105109574)
+        return self.get_guild(801457328346890241).get_channel(1045982323599999078)
 
     async def is_dev(self, user_id):
         return await self.db.fetchval("SELECT enabled FROM devmode WHERE user_id=$1", user_id)
@@ -124,6 +125,33 @@ class clvt(commands.Bot):
     async def set_prefix(self, guild, prefix):
         await self.db.execute('UPDATE prefixes SET prefix=$1 WHERE guild_id=$2', prefix, guild.id)
         self.prefixes[guild.id] = prefix
+
+    async def update_service_status(self, service_type, upd_time, error = None):
+        types = {
+            "Skin Database Update": 1045986497825878047
+        }
+        async with aiohttp.ClientSession() as session:
+            webh = discord.Webhook.from_url(os.getenv('WEBHOOK'), session=session)
+            if service_type not in types.keys():
+                print(f"Service type should be one of {types.keys()}")
+                return
+            if error is None:
+                embed = discord.Embed(title=service_type, color=discord.Color.green())
+                embed.add_field(name="Last Update", value=f"<t:{upd_time}:R>")
+            else:
+                embed = discord.Embed(title=service_type, color=discord.Color.red())
+                embed.add_field(name="Last Update", value=f"<t:{upd_time}:R>")
+                embed.add_field(name="Error", value=str(error))
+            try:
+                await webh.edit_message(message_id=types.get(service_type), embed=embed)
+            except Exception as e:
+                print(f"Failed to update status for \"{service_type}\": {e}")
+
+
+
+
+
+
 
     async def fetch_user_info(self, user_id):
         userinfo = await self.db.fetchrow("SELECT * FROM userinfo WHERE user_id=$1", user_id)

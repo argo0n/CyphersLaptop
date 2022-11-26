@@ -169,14 +169,6 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
             await ctx.checkmark()
             if not silently:
                 await ctx.send("Shutting down...")
-                votingvibes = self.client.get_channel(754725833540894750)
-                embed = discord.Embed(title=f"{ctx.me.name} is going offline in a short while to apply some updates.",
-                                      description="", color=self.client.embed_color, timestamp=discord.utils.utcnow())
-                embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/837698540217303071.png?size=96")
-                if votingvibes is not None:
-                    embed.description = "During the downtime, your votes might not be tracked. If it has been an hour after the downtime and your vote is not recorded, please let a moderator know in <#870880772985344010> when I'm back up again!"
-                    embed.footer.text = "Thank you for voting! :)"
-                    await votingvibes.send(embed=embed)
             if silently:
                 with contextlib.suppress(discord.HTTPException):
                     await ctx.message.delete()
@@ -352,23 +344,6 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                 pass
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
-
-    @checks.dev()
-    @commands.command(name='sudo', aliases=['su'], hidden=True, usage='<user> <command>')
-    async def sudo(self, ctx, member: MemberUserConverter = None, *, command: str = None):
-        """
-        Invoke a command as another user.
-        """
-        if member is None:
-            return await ctx.send('Member is a required argument.')
-        if command is None:
-            return await ctx.send('Command is a required argument.')
-        message = copy.copy(ctx.message)
-        message.channel = ctx.channel
-        message.author = member
-        message.content = ctx.prefix + command
-        new_ctx = await self.client.get_context(message, cls=type(ctx))
-        await self.client.invoke(new_ctx)
 
     @checks.dev()
     @commands.group(name='sql', invoke_without_command=True, hidden=True)

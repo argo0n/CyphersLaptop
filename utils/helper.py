@@ -35,15 +35,15 @@ class DynamicUpdater:
             await asyncio.sleep(self.update_every - (time.time() - self.last_updated))
 
     async def update(self, content = None, *, embed = None, view = None, force: Optional[bool] = False):
-        print("updating with content amogus")
+        #print("updating with content amogus")
         if time.time() - self.last_updated < self.update_every and force is not True:
-            print("awaiting")
+            #print("awaiting")
             pass
         else:
             if self.message is None:
                 self.message = await self.channel.send(content=content, embed=embed, view=view)
                 self.last_updated = round(time.time())
-                print("sent new message")
+                #print("sent new message")
             else:
                 try:
                     await self.message.edit(content=content, embed=embed, view=view)

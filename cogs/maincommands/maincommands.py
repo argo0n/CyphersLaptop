@@ -1,4 +1,5 @@
 import json
+import time
 from io import BytesIO
 
 import aiohttp
@@ -17,10 +18,12 @@ from utils.buttons import confirm, SingleURLButton
 import os
 from dotenv import load_dotenv
 
+from .update_skin_db import UpdateSkinDB
+
 load_dotenv()
 
 
-class MainCommands(commands.Cog):
+class MainCommands(UpdateSkinDB, commands.Cog):
     def __init__(self, client):
         self.client: clvt = client
         self.dbManager: DBManager = DBManager(self.client.db)
@@ -31,6 +34,7 @@ class MainCommands(commands.Cog):
         await self.client.wait_until_ready()
         self.dbManager = DBManager(self.client.db)
         self.ready = True
+        await self.update_skin_db.start()
 
     async def valorant_skin_autocomplete(self, ctx: discord.AutocompleteContext):
         if not self.ready:
@@ -40,15 +44,10 @@ class MainCommands(commands.Cog):
         if len(ctx.value) > 0:
             results = []
             for skin in sk:
-                print(ctx.value.lower(), skin.displayName.lower())
                 if ctx.value.lower() in skin.displayName.lower():
                     results.append(skin.displayName)
             return results[:25]
-
         else:
-
-            for i in sk:
-                print(i.displayName)
             return [s.displayName for s in sk[:25]]
 
 
@@ -87,9 +86,7 @@ class MainCommands(commands.Cog):
             pass
         # All other exceptions will be handled by global
         # Add to database
-        print("Adding account details to database...")
         await self.dbManager.add_user(ctx.author.id, username, password, reg_code)
-        print("Account details added to database.")
         await ctx.respond(embed=user_logged_in(username), ephemeral=True)
         print(f"**{username}** logged in from **{ctx.author}**")
 
@@ -319,7 +316,6 @@ class MainCommands(commands.Cog):
                 i.displayIcon = b["displayIcon"]
                 for offer in raw_offers:
                     if offer["OfferID"].lower() == b["uuid"].lower():
-                        print(offer)
                         i.cost = offer["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
                         break
                 skins.append(i)
@@ -330,6 +326,7 @@ class MainCommands(commands.Cog):
                                          "$2, cost = $3, displayIcon = $4, contenttieruuid = $5", i.uuid,
                                          i.displayName, i.cost, i.displayIcon, i.contentTierUUID)
         await ctx.respond(embed=updated_weapon_database())
+        await self.client.update_service_status("Skin Database Update", round(time.time()), None)
 
     @commands.slash_command(name="help", description="See all of Cypher's Laptop commands.")
     async def help(self, ctx: discord.ApplicationContext):
