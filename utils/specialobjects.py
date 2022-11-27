@@ -14,20 +14,19 @@ class _MissingSentinel:
         return "..."
 
 
-class UserInfo:
-    __slots__ = ('user_id', 'notify_about_logging', 'bypass_ban', 'heists', 'heistamt')
+class ReminderConfig:
+    __slots__ = ('user_id', 'enabled', 'show_immediately', 'picture_mode')
     def __init__(self, record):
         self.user_id: int = record.get('user_id')
-        self.notify_about_logging: bool = record.get('notify_about_logging')
-        self.bypass_ban: bool = record.get('bypass_ban')
-        self.heists: int = record.get('heists')
-        self.heistamt: int = record.get('heistamt')
+        self.enabled: bool = record.get('enabled')
+        self.show_immediately: bool = record.get('show_immediately')
+        self.picture_mode: bool = record.get('picture_mode')
 
     def __repr__(self) -> str:
-        return f"<UserInfo user_id={self.user_id} notify_about_logging={self.notify_about_logging} bypass_ban={self.bypass_ban} heists={self.heists} heistamt={self.heistamt}>"
+        return f"<ReminderConfig user_id={self.user_id} enabled={self.enabled} show_immediately={self.show_immediately} picture_mode={self.picture_mode}>"
 
     async def update(self, client):
-        a = await client.db.execute("UPDATE userinfo SET notify_about_logging=$1, bypass_ban=$2, heists=$3, heistamt=$4 WHERE user_id = $5", self.notify_about_logging, self.bypass_ban, self.heists, self.heistamt, self.user_id)
+        await client.db.execute("UPDATE store_reminder SET enabled=$1, show_immediately=$2, picture_mode=$3 WHERE user_id=$4", self.enabled, self.show_immediately, self.picture_mode, self.user_id)
 
 
 MISSING: Any = _MissingSentinel()
@@ -49,6 +48,7 @@ class RiotUser:
         self.password = password
         self.region = region
         return self
+
 
 class GunSkin:
 
