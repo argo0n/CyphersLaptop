@@ -136,7 +136,7 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool):
     embed = discord.Embed(title=skin.displayName, description=f" {cost}")
     if tier is not None:
         embed.color = tier["color"]
-        embed.description += f"\n{tier['emoji']} **{tier['name']}** tier"
+        embed.description += f"\n{tier['emoji']} **{tier['name']}**"
     embed.set_thumbnail(url=skin.displayIcon)
     if is_in_wishlist:
         embed.set_footer(text="This skin is in your wishlist!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
