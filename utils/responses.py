@@ -96,7 +96,7 @@ def skin_not_found(skin_name):
 def not_ready():
     return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
 
-def skin_embed(skin: GunSkin):
+def skin_embed(skin: GunSkin, is_in_wishlist: bool):
 
     tier_uuids = [
         {
@@ -138,6 +138,8 @@ def skin_embed(skin: GunSkin):
         embed.color = tier["color"]
         embed.description += f"\n{tier['emoji']} **{tier['name']}** tier"
     embed.set_thumbnail(url=skin.displayIcon)
+    if is_in_wishlist:
+        embed.set_footer(text="This skin is in your wishlist!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
     return embed
 
 

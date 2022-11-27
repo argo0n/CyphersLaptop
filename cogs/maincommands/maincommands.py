@@ -233,12 +233,25 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         }
         skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
         embeds = []
-        embeds.append(discord.Embed(title="Your VALORANT Store resets:",
-                                    description=f"In **{humanize_timedelta(seconds=remaining)}**", color=3092790))
+        base_detail = discord.Embed(title=f"{riot_account.username}'s <:val:1046289333344288808> VALORANT Store ",
+                                    description=f"Resets in **{humanize_timedelta(seconds=remaining)}**", color=3092790)
+        embeds.append(base_detail)
+        wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
+        wishlisted = 0
         for uuid in skin_uuids:
             sk = await self.dbManager.get_skin_by_uuid(uuid)
+            if sk.uuid in wishlisted_skins:
+                wishlisted += 1
+                is_in_wishlist = True
+            else:
+                is_in_wishlist = False
             if sk is not False:
-                embeds.append(skin_embed(sk))
+                embeds.append(skin_embed(sk, is_in_wishlist))
+        if len(embeds) > 0 and wishlisted > 0:
+            embeds[0].set_footer(text=f"{wishlisted} of these skins are in your wishlist!",
+                             icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
+
+
 
         await ctx.respond(embeds=embeds, view=ThumbnailToImage(ctx))
         print("Store fetch successful")
