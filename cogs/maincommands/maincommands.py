@@ -90,25 +90,30 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         }
         vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
         embed = discord.Embed(title=f"{riot_account.username}'s Balance",
-                              description= f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
+                              description=f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
                               color=discord.Color.blurple())
         await ctx.respond(embed=embed)
 
-
-
-    @commands.slash_command(name="login", description="Log in with your Riot account. Your password is encrypted and stored securely when you log in.")
+    @commands.slash_command(name="login",
+                            description="Log in with your Riot account. Your password is encrypted and stored securely when you log in.")
     async def login(self, ctx: discord.ApplicationContext,
                     username: discord.Option(str, "Your Riot account username", required=True),
-                    password: discord.Option(str, "Your Riot account password. It is encrypted when stored in the database.", required=True),
+                    password: discord.Option(str,
+                                             "Your Riot account password. It is encrypted when stored in the database.",
+                                             required=True),
                     region: discord.Option(str, "Your Riot region",
                                            choices=["Asia Pacific", "North America", "Europe", "Korea"], required=True),
                     ):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         reg_code = get_region_code(region)
-        riot_user = await self.dbManager.get_user_by_username(username)
-        if riot_user is not False:
-            return await ctx.respond(embed=user_already_exist(username, riot_user.user_id == ctx.author.id), ephemeral=True)
+        existing_logged_in = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if existing_logged_in:
+            return await ctx.respond(embed=already_logged_in(existing_logged_in.username), ephemeral=True)
+        existing_riot_user = await self.dbManager.get_user_by_username(username)
+        if existing_riot_user is not False:
+            return await ctx.respond(embed=user_already_exist(username, existing_riot_user.user_id == ctx.author.id),
+                                     ephemeral=True)
         await ctx.defer(ephemeral=True)
         try:
             auth = riot_authorization.RiotAuth()
@@ -129,16 +134,16 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         await ctx.respond(embed=user_logged_in(username), ephemeral=True)
         print(f"**{username}** logged in from **{ctx.author}**")
 
-
-
-    @commands.slash_command(name="logout", description="Log out of Cypher's Laptop. Your credentials are immediately deleted.")
+    @commands.slash_command(name="logout",
+                            description="Log out of Cypher's Laptop. Your credentials are immediately deleted.")
     async def logout(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         c = confirm(ctx, self.client, 30.0)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
-            e = discord.Embed(title="Confirm logout", description=f"Are you sure you want to log out of your Riot account **{riot_account.username}**?")
+            e = discord.Embed(title="Confirm logout",
+                              description=f"Are you sure you want to log out of your Riot account **{riot_account.username}**?")
         else:
             return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         c.response = await ctx.respond(embed=e, view=c, ephemeral=True)
@@ -147,7 +152,8 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
             await self.client.db.execute("DELETE FROM valorant_login WHERE user_id = $1", ctx.author.id)
             await ctx.respond(embed=user_logged_out(riot_account.username), ephemeral=True)
 
-    @commands.slash_command(name="update-password", description="Update your Riot account password in Cypher's Laptop if you have changed it.")
+    @commands.slash_command(name="update-password",
+                            description="Update your Riot account password in Cypher's Laptop if you have changed it.")
     async def update_password(self, ctx: discord.ApplicationContext,
                               password: discord.Option(str, "Your new Riot password")):
         if not self.ready:
@@ -186,17 +192,20 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         c = confirm(ctx, self.client, 30.0)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
-            e = discord.Embed(title="Confirm password update", description=f"Are you sure you want to update the password of your Riot account **{riot_account.username}**?")
+            e = discord.Embed(title="Confirm password update",
+                              description=f"Are you sure you want to update the password of your Riot account **{riot_account.username}**?")
         else:
             return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         c.response = await ctx.respond(embed=e, view=c, ephemeral=True)
         await c.wait()
         if c.returning_value is True:
-            await self.client.db.execute("UPDATE valorant_login SET password = $1 WHERE user_id = $2", password, ctx.author.id)
+            await self.client.db.execute("UPDATE valorant_login SET password = $1 WHERE user_id = $2", password,
+                                         ctx.author.id)
             await ctx.respond(embed=user_updated(riot_account.username), ephemeral=True)
 
     @commands.slash_command(name="store", description="Retrieves your VALORANT Store.")
-    async def store(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, min_length=6, max_length=6, required=False) = None):
+    async def store(self, ctx: discord.ApplicationContext,
+                    multifactor_code: discord.Option(str, min_length=6, max_length=6, required=False) = None):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -248,19 +257,20 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
             if sk is not False:
                 embeds.append(skin_embed(sk, is_in_wishlist))
         if len(embeds) > 0 and wishlisted > 0:
-            embeds[0].set_footer(text=f"{wishlisted} of these skins are in your wishlist!",
-                             icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
-
-
+            embeds[0].set_footer(text=f"There are skins from your wishlist!",
+                                 icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
 
         await ctx.respond(embeds=embeds, view=ThumbnailToImage(ctx))
         print("Store fetch successful")
         return
 
-    @commands.slash_command(name="get-raw-credentials", description="Get raw credentials of your Riot account to communicate with the VALORANT API.")
+    @commands.slash_command(name="get-raw-credentials",
+                            description="Get raw credentials of your Riot account to access the VALORANT API.")
     @discord.default_permissions(administrator=True)
     @checks.dev()
-    async def get_raw_credentials(self, ctx: discord.ApplicationContext, multifactor_code: discord.Option(str, "Your Riot multifactor code", required=False) = None):
+    async def get_raw_credentials(self, ctx: discord.ApplicationContext,
+                                  multifactor_code: discord.Option(str, "Your Riot multifactor code",
+                                                                   required=False) = None):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -303,20 +313,23 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         await ctx.respond(content=con, file=discord.File(json_bytes, filename="headers.json"), ephemeral=True)
 
     @commands.slash_command(name="skin", description="Search for a VALORANT gun skin.")
-    async def skin(self, ctx: discord.ApplicationContext, name: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
+    async def skin(self, ctx: discord.ApplicationContext,
+                   name: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
         skin = await self.dbManager.get_skin_by_name(name)
         if skin:
-            await ctx.respond(embed=skin_embed(skin), view=ThumbnailToImage(ctx))
+            await ctx.respond(embed=skin_embed(skin, False), view=ThumbnailToImage(ctx))
         else:
             await ctx.respond(embed=skin_not_found(name))
 
-    @commands.slash_command(name="update_skins_database", description="Manually update the internal VALORANT gun skins database.")
-    @discord.default_permissions(administrator=True)
     @checks.dev()
+    @commands.slash_command(name="update_skins_database",
+                            description="Manually update the internal VALORANT gun skins database.")
+    @discord.default_permissions(administrator=True)
     async def update_skins_database(self, ctx: discord.ApplicationContext,
-                                    multifactor_code: discord.Option(str, "Your Riot multifactor code", required=False) = None):
+                                    multifactor_code: discord.Option(str, "Your Riot multifactor code",
+                                                                     required=False) = None):
         riot_account = await self.dbManager.get_user_by_user_id(0)
         if riot_account:
             await ctx.defer(ephemeral=True)
@@ -353,7 +366,7 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
         raw_offers = await get_store.getRawOffers(headers, riot_account.region)
-        #print(raw_offers)
+        # print(raw_offers)
         all_skins = await get_store.getAllSkins()
         skins = []
         for s in all_skins:
@@ -386,16 +399,17 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
 
     @commands.slash_command(name="about", description="About Cypher's Laptop.")
     async def about(self, ctx: discord.ApplicationContext):
-        embed = discord.Embed(title="Cypher's Laptop",
-                              description="**Nothing stays hidden from Cypher. Nothing. Not even your VALORANT Store.**\n\nCypher's Laptop helps you track your VALORANT Store, to make sure you never miss out on your favorite skin.",
-                              color=discord.Color.blue())
+        embed = discord.Embed(
+            title="Nothing stays hidden from Cypher. Nothing. Not even your <:val:1046289333344288808> VALORANT Store.",
+            description="Cypher's Laptop helps you track your <:val:1046289333344288808> Store, to make sure you never miss out on your favorite skin.",
+            color=discord.Color.blue())
         embed.add_field(name="Features",
-                        value="• **Check** and **Track** your VALORANT Store\n• **Search** for a VALORANT gun skin\n• View your <:vp:1045605973005434940> Balance\n• Fast and simple process",
+                        value="• **Check** and **Track** your VALORANT Store with a wishlist\n• **Search** for VALORANT gun skins\n• View your <:vp:1045605973005434940> <:rp:1045991796838256640> Balance\n",
                         inline=False)
         embed.add_field(name="Get started",
-                        value="1) Login to your Riot account through the </login:1045213188209258518> command. Your password is encrypted and stored securely.\n2) Run </store:1045171702612639836> to check your VALORANT Store!\n\nYou don't have to log in to search for gun skins. You can log out anytime, and your credentials are deleted immediately from our storage.",
+                        value="1) Login to your Riot account through the </login:1045213188209258518> command. Your password is encrypted and stored securely.\n2) Run </store:1045171702612639836> to check your VALORANT Store!\n\nA login isn't required for seraching skins. You can log out anytime, and your credentials are deleted immediately from our storage.",
                         inline=False)
-        embed.add_field(name="\u200b", value="\u200b", inline=False)
+        # embed.add_field(name="\u200b", value="\u200b", inline=False)
         embed.add_field(name="Developer", value="Argon#0002", inline=True)
         embed.add_field(name="Privacy",
                         value="Passwords are encrypted with Fernet and stored in a secure database.", inline=True)
@@ -412,7 +426,10 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
     @commands.slash_command(name="invite", description="Invite Cypher's Laptop to your server!")
     async def invite(self, ctx: discord.ApplicationContext):
         embed = discord.Embed(title="Cypher's Laptop - A VALORANT Store tracking bot on Discord",
-                              description="Nothing stays hidden from Cypher. Nothing. Not even your VALORANT Store.\nCypher's Laptop helps you track your VALORANT Store, to make sure you never miss out on your favorite skin.", color=0x2f3136)
-        embed.set_image(url="https://cdn.discordapp.com/attachments/805604591630286918/1045968296488480818/CyphersLaptopWideEdited.png")
+                              description="Nothing stays hidden from Cypher. Nothing. Not even your VALORANT Store.\nCypher's Laptop helps you track your VALORANT Store, to make sure you never miss out on your favorite skin.",
+                              color=0x2f3136)
+        embed.set_image(
+            url="https://cdn.discordapp.com/attachments/805604591630286918/1045968296488480818/CyphersLaptopWideEdited.png")
 
-        await ctx.respond(embed=embed, view=SingleURLButton(text="Click here to invite Cypher's Laptop", link=f"https://discord.com/api/oauth2/authorize?client_id={self.client.user.id}&permissions=137439266880&scope=bot%20applications.commands"))
+        await ctx.respond(embed=embed, view=SingleURLButton(text="Click here to invite Cypher's Laptop",
+                                                            link=f"https://discord.com/api/oauth2/authorize?client_id={self.client.user.id}&permissions=137439266880&scope=bot%20applications.commands"))
