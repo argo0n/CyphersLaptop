@@ -74,7 +74,7 @@ class clvt(commands.Bot):
 
     async def on_ready(self):
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded all Server Configurations")
-        all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist"]
+        all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist", "store_reminder", "cached_stores"]
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Checking for missing databases")
         tables = await self.db.fetch("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
         tables = [i.get('table_name') for i in tables]
@@ -95,6 +95,8 @@ class clvt(commands.Bot):
                 CREATE TABLE IF NOT EXISTS skins(uuid text PRIMARY KEY NOT NULL, displayName text not null, displayIcon text, cost int, contentTierUUID text);
                 CREATE TABLE IF NOT EXISTS prefixes(guild_id bigint PRIMARY KEY NOT NULL, prefix text NOT NULL);
                 CREATE TABLE IF NOT EXISTS wishlist(user_id bigint NOT NULL, skin_uuid text NOT NULL);
+                CREATE TABLE IF NOT EXISTS store_reminder(user_id bigint not null, enabled bool default false not null, show_immediately bool default false not null, picture_mode bool default false not null);
+                CREATE TABLE IF NOT EXISTS cached_stores(user_id bigint not null, store_date date default CURRENT_DATE not null,  skin1_uuid text not null, skin2_uuid text not null, skin3_uuid text not null, skin4_uuid text not null);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")
 
