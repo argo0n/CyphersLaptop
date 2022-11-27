@@ -1,7 +1,7 @@
 import asyncpg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-from utils.specialobjects import RiotUser, GunSkin
+from utils.specialobjects import RiotUser, GunSkin, ReminderConfig
 import os
 
 load_dotenv()
@@ -96,4 +96,11 @@ class DBManager:
             return False
         await self.pool_pg.fetchval("DELETE FROM wishlist WHERE user_id = $1 AND skin_uuid = $2", user_id, skin_uuid)
         return True
+
+    async def fetch_user_reminder_settings(self, user_id) -> ReminderConfig:
+        rem_db = await self.pool_pg.fetchrow("SELECT * FROM store_reminder WHERE user_id = $1", user_id)
+        if rem_db is None:
+            await self.pool_pg.execute("INSERT INTO store_reminder(user_id) VALUES ($1)", user_id)
+            rem_db = await self.pool_pg.fetchrow("SELECT * FROM store_reminder WHERE user_id = $1", user_id)
+        return ReminderConfig(rem_db)
 

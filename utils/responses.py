@@ -132,11 +132,11 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool):
     ]
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
     print(skin)
-    cost = f"<:vp:1045605973005434940> {comma_number(skin.cost)}" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+    cost = f"<:vp:1045605973005434940> **{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
     embed = discord.Embed(title=skin.displayName, description=f" {cost}")
     if tier is not None:
         embed.color = tier["color"]
-        embed.description += f"\n{tier['emoji']} **{tier['name']}**"
+        embed.description += f"\n{tier['emoji']} {tier['name']}"
     embed.set_thumbnail(url=skin.displayIcon)
     if is_in_wishlist:
         embed.set_footer(text="This skin is in your wishlist!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")

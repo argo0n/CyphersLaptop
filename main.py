@@ -12,7 +12,7 @@ from discord import client
 from discord.ext import commands, tasks
 from utils.context import CLVTcontext
 from utils.format import print_exception
-from utils.specialobjects import MISSING, UserInfo
+from utils.specialobjects import MISSING
 
 
 strfformat = "%d-%m-%y %H:%M:%S"
@@ -150,18 +150,6 @@ class clvt(commands.Bot):
             except Exception as e:
                 print(f"Failed to update status for \"{service_type}\": {e}")
 
-
-
-
-
-
-
-    async def fetch_user_info(self, user_id):
-        userinfo = await self.db.fetchrow("SELECT * FROM userinfo WHERE user_id=$1", user_id)
-        if userinfo is None:
-            await self.db.execute("INSERT INTO userinfo(user_id) VALUES ($1)", user_id)
-            userinfo = await self.db.fetchrow("SELECT * FROM userinfo WHERE user_id=$1", user_id)
-        return UserInfo(userinfo)
 
     def get_guild_prefix(self, guild):
         if guild is None:

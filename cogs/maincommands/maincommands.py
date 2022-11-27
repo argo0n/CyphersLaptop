@@ -20,11 +20,12 @@ from dotenv import load_dotenv
 
 from .update_skin_db import UpdateSkinDB
 from .wishlist import WishListManager
+from .reminders import StoreReminder
 
 load_dotenv()
 
 
-class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
+class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
     def __init__(self, client):
         self.client: clvt = client
         self.dbManager: DBManager = DBManager(self.client.db)
@@ -243,7 +244,7 @@ class MainCommands(WishListManager, UpdateSkinDB, commands.Cog):
         skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
         embeds = []
         base_detail = discord.Embed(title=f"{riot_account.username}'s <:val:1046289333344288808> VALORANT Store ",
-                                    description=f"Resets in **{humanize_timedelta(seconds=remaining)}**", color=3092790)
+                                    description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)
         embeds.append(base_detail)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
