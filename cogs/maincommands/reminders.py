@@ -101,7 +101,7 @@ class SelectSetting(discord.ui.Select):
 
 
 enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
-show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or ", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
+show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
 picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or as a list.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
 
 
@@ -241,5 +241,5 @@ class StoreReminder(commands.Cog):
             pass
         else:
             now = discord.utils.utcnow()
-            next_run = now.replace(hour=0, minute=0, second=0) + timedelta(days=1)
+            next_run = now.replace(hour=0, minute=1, second=0) + timedelta(days=1)
             await discord.utils.sleep_until(next_run)
