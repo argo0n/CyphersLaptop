@@ -66,7 +66,7 @@ class confirm(discord.ui.View):
         if isinstance(self.response, discord.Message):
             await self.response.edit(view=self)
         elif isinstance(self.response, discord.Interaction):
-            await self.response.edit_original_message(view=self)
+            await self.response.edit_original_response(view=self)
 
 
 
@@ -147,11 +147,10 @@ class ViewAuthor(BaseView):
 
 
 class ThumbnailToImage(discord.ui.View):
-    def __init__(self, ctx: discord.ApplicationContext):
-        self.ctx = ctx
+    def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"))
+    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v1")
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
@@ -173,9 +172,8 @@ class ThumbnailToImage(discord.ui.View):
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        ctx = self.ctx
-        author = ctx.author
-        if interaction.user != author:
-            await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
-            return False
+        if interaction.message.interaction is not None:
+            if interaction.user.id != interaction.message.interaction.user.id:
+                await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
+                return False
         return True
