@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 from .update_skin_db import UpdateSkinDB
 from .wishlist import WishListManager
-from .reminders import StoreReminder
+from .reminders import StoreReminder, ViewStoreFromReminder
 
 load_dotenv()
 
@@ -33,10 +33,15 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        print("main onready")
         await self.client.wait_until_ready()
         self.dbManager = DBManager(self.client.db)
         self.ready = True
-        await self.update_skin_db.start()
+        self.reminder_loop.start()
+        self.update_skin_db.start()
+        self.client.add_view(ThumbnailToImage())
+        self.client.add_view(ViewStoreFromReminder(self.dbManager))
+
 
     async def valorant_skin_autocomplete(self, ctx: discord.AutocompleteContext):
         if not self.ready:
@@ -250,18 +255,18 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         wishlisted = 0
         for uuid in skin_uuids:
             sk = await self.dbManager.get_skin_by_uuid(uuid)
-            if sk.uuid in wishlisted_skins:
-                wishlisted += 1
-                is_in_wishlist = True
-            else:
-                is_in_wishlist = False
             if sk is not False:
+                if sk.uuid in wishlisted_skins:
+                    wishlisted += 1
+                    is_in_wishlist = True
+                else:
+                    is_in_wishlist = False
                 embeds.append(skin_embed(sk, is_in_wishlist))
         if len(embeds) > 0 and wishlisted > 0:
             embeds[0].set_footer(text=f"There are skins from your wishlist!",
                                  icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
 
-        await ctx.respond(embeds=embeds, view=ThumbnailToImage(ctx))
+        await ctx.respond(embeds=embeds, view=ThumbnailToImage())
         print("Store fetch successful")
         return
 

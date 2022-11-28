@@ -37,7 +37,9 @@ def already_logged_in(username):
 
 
 def user_logged_in(username):
-    return discord.Embed(title="Successfully logged in", description=f"Your Riot account, **{username}** has been successfully verified and logged in.\n\nIf you received a login MFA code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
+    embed = discord.Embed(title="Successfully logged in", description=f"Your Riot account, **{username}** has been successfully verified and logged in.\n\nIf you received a login MFA code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
+    embed.add_field(name="What next?", value="• Use </store:1045171702612639836> to check your store at any time.\n• Never miss out on your store by enabling and customizing your </reminders:1046432239724015697>.\n\nI will inform you if your <:wlGUN:1046281227142975538> **favorite skin** is in the shop! Just add your favorite skins to your </wishlist add:1046095784292130946>.")
+    return embed
 
 
 def user_logged_out(username):
@@ -68,6 +70,22 @@ def skin_removed_from_wishlist(skin_name):
 
 def skin_not_on_wishlist(skin_name):
     return discord.Embed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.", color=discord.Color.red())
+
+def store_here(skin_in_wishlist):
+    date_asstr = discord.utils.utcnow().strftime("%A, %m %B %y")
+    if skin_in_wishlist:
+        return (
+            discord.Embed(title="Your VALORANT Store has reset! You have WISHLISTED SKINS in your store", description="Tap here to check it!", color=3092790),
+            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="<:wlGUN:1046281227142975538> You have **WISHLISTED SKINS** in your store!", color=3092790).set_footer(text=date_asstr)
+        )
+    else:
+        return (
+            discord.Embed(title="Your VALORANT Store has reset", description="Tap here to check it!", color=3092790),
+            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="Check out your newly refreshed <:val:1046289333344288808> Store.", color=3092790).set_footer(text=date_asstr)
+        )
+
+def no_cached_store():
+    return discord.Embed(title="Daily Store Error", description="We were unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.", color=discord.Color.red())
 
 
 # ------- Riot Authentication Errors/Responses -------
@@ -147,6 +165,19 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool):
 
 def permission_error():
     return discord.Embed(title="Permission Error (403 Forbidden)", description="Permissions in this server channel do not allow messages to be sent.\nA server admin will need to allow message sending for Valemporium in channel permission settings.", color=discord.Color.dark_red())
+
+def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorization_failed", "rate_limit"]) -> list[discord.Embed]:
+    responses = {
+        "no_account": "You do not have a Riot account logged in to Cypher's Laptop.",
+        "mfa_enabled": "**You have Multi-factor Authentication (MFA) enabled for your Riot account.**\nFor your convenience, we are unable to provide you your daily Store if MFA is enabled.\nYou can continue using the </store:1045171702612639836> command to check your daily Store.",
+        "authorization_failed": "Cypher's Laptop was unable to login to your Riot account."
+    }
+    embeds = []
+    if reason == "authorization_failed":
+        embeds.append(authentication_error())
+    reason = responses.get(reason, "A reason was not specified.")
+    embeds.append(discord.Embed(title="Your Daily VALORANT Store Reminder has been disabled", description=reason, color=discord.Color.red()))
+    return embeds
 
 
 # ------- Unknown Error (Unhandled exception) -------

@@ -103,4 +103,9 @@ class DBManager:
             await self.pool_pg.execute("INSERT INTO store_reminder(user_id) VALUES ($1)", user_id)
             rem_db = await self.pool_pg.fetchrow("SELECT * FROM store_reminder WHERE user_id = $1", user_id)
         return ReminderConfig(rem_db)
+    
+    async def fetch_reminders(self) -> list[ReminderConfig]:
+        reminders = await self.pool_pg.fetch("SELECT * FROM store_reminder")
+        return [ReminderConfig(rem) for rem in reminders]
+        
 
