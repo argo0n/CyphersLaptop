@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta, datetime
 
 import discord
@@ -5,6 +6,7 @@ from discord.ext import commands, tasks
 
 from cogs.maincommands.database import DBManager
 from main import clvt
+from utils.format import box
 from utils.responses import *
 from utils.specialobjects import *
 from utils import get_store, riot_authorization
@@ -225,7 +227,9 @@ class StoreReminder(commands.Cog):
                                 embeds.append(skin_embed(sk, False))
                     await m.edit(embeds=embeds)
             except Exception as e:
-                await self.client.error_channel.send(f"Error while trying : {e}")
+                await self.client.error_channel.send(f"Error while processing store for {reminder.user_id}:\n{box(str(e), lang='py')}")
+        await self.client.update_service_status("Daily Store Reminder", round(time.time()))
+
 
     @reminder_loop.before_loop
     async def wait_until_reset(self):

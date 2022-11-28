@@ -131,7 +131,8 @@ class clvt(commands.Bot):
 
     async def update_service_status(self, service_type, upd_time, error = None):
         types = {
-            "Skin Database Update": 1045986497825878047
+            "Skin Database Update": 1045986497825878047,
+            "Daily Store Reminder": 1046791173508960446,
         }
         async with aiohttp.ClientSession() as session:
             webh = discord.Webhook.from_url(os.getenv('WEBHOOK'), session=session)
