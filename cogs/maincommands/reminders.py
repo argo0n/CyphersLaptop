@@ -127,7 +127,7 @@ class ReminderSettingsView(discord.ui.View):
             self.embed = enable_disable_embed
         elif self.current_selected == "show_immediately":
             self.embed = show_immediately_embed
-        elif self.reminder_config == "picture_mode":
+        elif self.current_selected == "picture_mode":
             self.embed = picture_mode_embed
 
 
