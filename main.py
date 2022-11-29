@@ -34,7 +34,7 @@ port = int(os.getenv('dbPORT'))
 password = os.getenv('dbPASSWORD')
 
 
-intents = discord.Intents(messages=True)
+intents = discord.Intents(messages=True, guilds=True)
 allowed_mentions = discord.AllowedMentions(everyone=False, roles=False)
 
 
@@ -51,6 +51,7 @@ class clvt(commands.Bot):
         self.maintenance_message = {}
         self.available_extensions = AVAILABLE_EXTENSIONS
         self.editqueue = []
+        self.error_channel = None
         self.deleted_edit_messages = []
         for ext in self.available_extensions:
             self.load_extension(ext, store=False)
@@ -73,6 +74,7 @@ class clvt(commands.Bot):
         await self.wait_until_ready()
 
     async def on_ready(self):
+        self.error_channel = await self.fetch_channel(1045982323599999078)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded all Server Configurations")
         all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist", "store_reminder", "cached_stores"]
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Checking for missing databases")
@@ -155,7 +157,6 @@ class clvt(commands.Bot):
 
     async def shutdown(self):
         """Cancels tasks and shuts down the bot."""
-        await self.topgg_webhook.close()
         await self.close()
 
     def starter(self):
