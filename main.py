@@ -34,13 +34,13 @@ port = int(os.getenv('dbPORT'))
 password = os.getenv('dbPASSWORD')
 
 
-intents = discord.Intents(messages=True, message_content=True)
+intents = discord.Intents(messages=True)
 allowed_mentions = discord.AllowedMentions(everyone=False, roles=False)
 
 
 class clvt(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix = self.get_prefix, intents=intents, allowed_mentions=allowed_mentions, case_insensitive=True)
+        super().__init__(command_prefix= self.get_prefix, intents=intents, allowed_mentions=allowed_mentions, case_insensitive=True)
         self.custom_status = False
         self.prefixes = {}
         self.uptime = None
@@ -113,17 +113,7 @@ class clvt(commands.Bot):
     async def get_prefix(self, message):
         if message.guild is None:
             return commands.when_mentioned_or('.')(self, message)
-        guild_id = message.guild.id
-        if not (prefix := self.prefixes.get(guild_id)):
-            query = "SELECT prefix FROM prefixes WHERE guild_id=$1"
-            data = await self.db.fetchrow(query, guild_id)
-            if data is None:
-                await self.db.execute("INSERT INTO prefixes VALUES ($1, $2)", guild_id, 'cl.')
-                data = {}
-            prefix = self.prefixes.setdefault(guild_id, data.get("prefix") or '.')
-        if message.content.lower().startswith(prefix):
-            prefix = message.content[:len(prefix)]
-        return commands.when_mentioned_or(prefix)(self, message)
+        return commands.when_mentioned_or('.')(self, message)
 
     async def set_prefix(self, guild, prefix):
         await self.db.execute('UPDATE prefixes SET prefix=$1 WHERE guild_id=$2', prefix, guild.id)
