@@ -51,7 +51,6 @@ class clvt(commands.Bot):
         self.maintenance_message = {}
         self.available_extensions = AVAILABLE_EXTENSIONS
         self.editqueue = []
-        self.error_channel = None
         self.deleted_edit_messages = []
         for ext in self.available_extensions:
             self.load_extension(ext, store=False)
