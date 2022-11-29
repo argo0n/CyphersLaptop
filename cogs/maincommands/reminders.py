@@ -6,6 +6,7 @@ from discord.ext import commands, tasks
 
 from cogs.maincommands.database import DBManager
 from main import clvt
+from utils.buttons import ThumbnailToImageOnly
 from utils.format import box
 from utils.responses import *
 from utils.specialobjects import *
@@ -42,7 +43,7 @@ class ViewStoreFromDaily(discord.ui.Button):
             embeds.append(skin_embed(sk, is_wishlist))
         if wishlisted > 0:
             embeds[0].set_footer(text=f"You have {wishlisted} skins wishlisted in this store!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
-        await interaction.response.send_message(embeds=embeds, ephemeral=True)
+        await interaction.response.send_message(embeds=embeds, ephemeral=True, view=ThumbnailToImageOnly())
 
 
 class EnableDisable(discord.ui.Button):
@@ -229,7 +230,7 @@ class StoreReminder(commands.Cog):
                                 embeds.append(skin_embed(sk, True))
                             else:
                                 embeds.append(skin_embed(sk, False))
-                    await m.edit(embeds=embeds)
+                    await m.edit(embeds=embeds, view=ThumbnailToImageOnly())
             except Exception as e:
                 await self.client.error_channel.send(f"Error while processing store for {reminder.user_id}:\n{box(str(e), lang='py')}")
         await self.client.update_service_status("Daily Store Reminder", round(time.time()))
