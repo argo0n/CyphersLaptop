@@ -33,7 +33,6 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("main onready")
         await self.client.wait_until_ready()
         self.dbManager = DBManager(self.client.db)
         self.ready = True
@@ -413,7 +412,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             description="Cypher's Laptop helps you track your <:val:1046289333344288808> Store, to make sure you never miss out on your favorite skin.",
             color=discord.Color.blue())
         embed.add_field(name="Features",
-                        value="• **Check** and **Track** your VALORANT Store with a wishlist\n• **Search** for VALORANT gun skins\n• View your <:vp:1045605973005434940> <:rp:1045991796838256640> Balance\n",
+                        value="• **Check** and **Track** your VALORANT Store with a wishlist\n• **Search** for VALORANT gun skins\n• View your <:vp:1045605973005434940> <:rp:1045991796838256640> Balance\n• Get daily reminders to check your store\n",
                         inline=False)
         embed.add_field(name="Get started",
                         value="1) Login to your Riot account through the </login:1045213188209258518> command. Your password is encrypted and stored securely.\n2) Run </store:1045171702612639836> to check your VALORANT Store!\n\nA login isn't required for seraching skins. You can log out anytime, and your credentials are deleted immediately from our storage.",
