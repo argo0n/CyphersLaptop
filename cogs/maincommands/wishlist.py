@@ -1,3 +1,6 @@
+import asyncio
+from typing import Optional
+
 import discord
 from discord.ext import commands
 
@@ -36,9 +39,6 @@ tier_uuids = [
             "emoji": "<:UE:1045730732691161188>"
         }
     ]
-
-
-
 
 
 class WishListManager(commands.Cog):

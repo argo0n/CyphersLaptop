@@ -14,7 +14,7 @@ from utils.specialobjects import GunSkin
 from utils.time import humanize_timedelta
 from .database import DBManager
 from utils.responses import *
-from utils.buttons import confirm, SingleURLButton, ThumbnailToImage
+from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist
 import os
 from dotenv import load_dotenv
 
@@ -39,7 +39,8 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         self.ready = True
         self.reminder_loop.start()
         self.update_skin_db.start()
-        self.client.add_view(ThumbnailToImage())
+        self.client.add_view(ThumbnailAndWishlist(self.dbManager))
+        self.client.add_view(ThumbnailToImageOnly())
         self.client.add_view(ViewStoreFromReminder(self.dbManager))
 
 
@@ -266,7 +267,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             embeds[0].set_footer(text=f"There are skins from your wishlist!",
                                  icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
 
-        await ctx.respond(embeds=embeds, view=ThumbnailToImage())
+        await ctx.respond(embeds=embeds, view=ThumbnailToImageOnly())
         print("Store fetch successful")
         return
 
@@ -324,8 +325,10 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
         skin = await self.dbManager.get_skin_by_name(name)
+        wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
+        view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
         if skin:
-            await ctx.respond(embed=skin_embed(skin, False), view=ThumbnailToImage())
+            await ctx.respond(embed=skin_embed(skin, False), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
 
