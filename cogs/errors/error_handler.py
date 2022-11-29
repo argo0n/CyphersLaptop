@@ -95,9 +95,10 @@ class ErrorHandler(commands.Cog):
                 else:
                     embed.set_footer(text="In the meantime, do not keep running this command.")
                     await send_error(embed=embed, delete_after=10)
+                guild = f"`{ctx.guild}` ({ctx.guild.id})" if ctx.guild is not None else "DMs"
                 error_message = f"**Command:** `{ctx.command.name}`\n" \
                                 f"**Author:** `{ctx.author}` ({ctx.author.id})\n" \
-                                f"**Guild:** `{ctx.guild}` ({ctx.guild.id})\n" \
+                                f"**Guild:** {guild}\n" \
                                 f"**Channel:** `{ctx.channel}` ({ctx.channel.id})\n" \
                                 f"```py\n" \
                                 f"{traceback_error}\n" \
@@ -171,13 +172,13 @@ class ErrorHandler(commands.Cog):
                 else:
                     embed.set_footer(text="In the meantime, do not keep running this command.")
                     await send_error(embed=embed, delete_after=10)
+                guild = f"`{ctx.guild.name}` ({ctx.guild.id})" if ctx.guild is not None else "DMs"
                 error_message = f"**Command:** `{ctx.message.content}`\n" \
                                 f"**Message ID:** `{ctx.message.id}`\n" \
                                 f"**Author:** `{ctx.author}` ({ctx.author.id})\n" \
-                                f"**Guild:** `{ctx.guild}` ({ctx.guild.id})\n" \
-                                f"**Channel:** `{ctx.channel}` ({ctx.channel.id})\n" \
+                                f"**Guild:** {guild}\n" \
+                                f"**Channel:** `{ctx.channel.name}` ({ctx.channel.id})\n" \
                                 f"**Jump:** [`jump`]({ctx.message.jump_url})```py\n" \
                                 f"{traceback_error}\n" \
                                 f"```"
-                return
-                await self.client.error_channel.send(content=f"<@&871740422932824095> Check this out",embed=discord.Embed(title="Text Command Error", color=0xffcccb, description=error_message, timestamp=discord.utils.utcnow()).set_footer(text=f"From: {ctx.guild.name}", icon_url=ctx.guild.icon.url), allowed_mentions=discord.AllowedMentions(roles=True))
+                return await self.client.error_channel.send(content=f"<@&871740422932824095> Check this out",embed=discord.Embed(title="Text Command Error", color=0xffcccb, description=error_message, timestamp=discord.utils.utcnow()).set_footer(text=f"From: {ctx.guild.name}", icon_url=ctx.guild.icon.url), allowed_mentions=discord.AllowedMentions(roles=True))
