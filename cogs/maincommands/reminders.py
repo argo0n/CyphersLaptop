@@ -63,7 +63,9 @@ class EnableDisable(discord.ui.Button):
             await self.view.reminder_config.update(interaction.client)
             self.update_button()
         await self.view.reminder_config.update(interaction.client)
-        await interaction.response.edit_message(view=self.view)
+        self.view.update_embed()
+        print(self.view.embed.color)
+        await interaction.response.edit_message(view=self.view, embed=self.view.embed)
 
     def update_button(self):
         is_enabled = getattr(self.view.reminder_config, self.view.current_selected)
@@ -129,6 +131,7 @@ class ReminderSettingsView(discord.ui.View):
             self.embed = show_immediately_embed
         elif self.current_selected == "picture_mode":
             self.embed = picture_mode_embed
+        self.embed.color = discord.Color.green() if getattr(self.reminder_config, self.current_selected) else discord.Color.red()
 
 
 class StoreReminder(commands.Cog):
@@ -140,6 +143,7 @@ class StoreReminder(commands.Cog):
     async def reminder_cmd(self, ctx):
         user_settings = await self.dbManager.fetch_user_reminder_settings(ctx.author.id)
         view = ReminderSettingsView(user_settings)
+        view.update_embed()
         await ctx.respond(embed=enable_disable_embed, view=view)
         await view.wait()
 
