@@ -12,9 +12,10 @@ import time
 import typing
 from collections import Counter
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 
 import discord
+import pytz
 from discord import Webhook
 import asyncio
 import inspect
@@ -507,3 +508,25 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                 await basemsg.edit(content="```\n" + content + "\n```")
             content += f"\n\nCompleted in {round((time.perf_counter() - now) * 1000, 3)}ms"
             await basemsg.edit(content="```\n" + content + "\n```")
+
+    @discord.default_permissions(administrator=True)
+    @checks.dev()
+    @commands.slash_command(name="duck_message", description="Add a message for duck", guild_ids=[801457328346890241])
+    async def a(self, ctx: discord.ApplicationContext,
+                send_date: discord.Option(str, description="DD/MM/YY"),
+                message: discord.Option(str, description="Message", max_length=1000)
+                ):
+        a = datetime.strptime(send_date, "%d/%m/%y").replace(tzinfo=pytz.UTC)
+        send_date = datetime.strptime(send_date, "%d/%m/%y").date()
+        exist = await self.client.db.fetchrow("SELECT * FROM duck_messages WHERE send_date = $1", send_date)
+        if exist:
+            c = confirm(ctx, self.client, 30.0)
+            c.response = await ctx.respond("This date already has a message, do you want to overwrite it?", view=c)
+            await c.wait()
+            if c.returning_value is not True:
+                return
+        if exist:
+            await  self.client.db.execute("UPDATE duck_messages SET message = $1, send_date = $2 WHERE send_date = $2", message, send_date)
+        else:
+            await self.client.db.execute("INSERT INTO duck_messages(send_date, message) VALUES($1, $2)", send_date, message)
+            await ctx.respond(f"Message added for {a.strftime('%d/%m/%Y')}")

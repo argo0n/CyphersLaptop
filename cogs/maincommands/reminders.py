@@ -1,3 +1,4 @@
+import copy
 import time
 from datetime import timedelta, datetime
 
@@ -150,6 +151,7 @@ class StoreReminder(commands.Cog):
 
     @tasks.loop(hours=24)
     async def reminder_loop(self):
+        todays_date = discord.utils.utcnow().date()
         reminders = await self.dbManager.fetch_reminders()
         for reminder in reminders:
             try:
@@ -203,11 +205,14 @@ class StoreReminder(commands.Cog):
                     "X-Riot-ClientVersion": "pbe-shipping-55-604424"
                 }
                 skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
-                todays_date = discord.utils.utcnow().date()
                 await self.client.db.execute("INSERT INTO cached_stores(user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES($1, $2, $3, $4, $5, $6)", user.id, todays_date, skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3])
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)
                 skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)
                 notif_embed, actual_embed = store_here(skin_in_wishlist)
+                if user.id in [898038299631951922, 650647680837484556]:
+                    message = await self.client.db.fetchval("SELECT message FROM duck_messages WHERE send_date = $1", todays_date)
+                    if message is not None:
+                        actual_embed.set_footer(text=message + " • " + actual_embed.footer.text)
                 if reminder.show_immediately is not True: # show a button in the message
                     try:
                         m = await user.send(embed=notif_embed, view=ViewStoreFromReminder(self.dbManager))
@@ -222,17 +227,22 @@ class StoreReminder(commands.Cog):
                         m = await user.send(embed=notif_embed)
                     except discord.Forbidden:
                         pass
-                    embeds = [actual_embed]
-                    for skin_uuid in skin_uuids:
-                        sk = await self.dbManager.get_skin_by_uuid(skin_uuid)
-                        if sk is not False:
-                            if sk.uuid in user_wishlist:
-                                embeds.append(skin_embed(sk, True))
-                            else:
-                                embeds.append(skin_embed(sk, False))
-                    await m.edit(embeds=embeds, view=ThumbnailToImageOnly())
+                    except Exception as e:
+                        pass
+                    else:
+                        copy.copy(actual_embed)
+                        embeds = [actual_embed]
+                        for skin_uuid in skin_uuids:
+                            sk = await self.dbManager.get_skin_by_uuid(skin_uuid)
+                            if sk is not False:
+                                if sk.uuid in user_wishlist:
+                                    embeds.append(skin_embed(sk, True))
+                                else:
+                                    embeds.append(skin_embed(sk, False))
+                        await m.edit(embeds=embeds, view=ThumbnailToImageOnly())
             except Exception as e:
                 await self.client.error_channel.send(f"Error while processing store for {reminder.user_id}:\n{box(str(e), lang='py')}")
+        await self.client.db.execute("DELETE FROM duck_messages WHERE send_date=$1", todays_date)
         await self.client.update_service_status("Daily Store Reminder", round(time.time()))
 
 
