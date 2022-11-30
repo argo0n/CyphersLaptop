@@ -8,3 +8,4 @@
 </p>
 
 # Cypher's Laptop
+![CyphersLaptopUserBannerV3_compressed](https://user-images.githubusercontent.com/67531837/204711245-71c96879-b236-4811-ad7b-918a8ed9d94c.png)
