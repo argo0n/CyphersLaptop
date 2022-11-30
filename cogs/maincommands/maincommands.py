@@ -422,7 +422,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         embed.add_field(name="Privacy",
                         value="Passwords are encrypted with Fernet and stored in a secure database.", inline=True)
         embed.add_field(name="Source",
-                        value="Check out the [GitHub](https://github.com/PureAspiration/Valemporium) repo",
+                        value="[GitHub](https://github.com/argo0n/CyphersLaptop)",
                         inline=True)
         embed.add_field(name="Thanks",
                         value="[Valorina](https://github.com/sanjaybaskaran01/Valorina), [Valemporium](https://github.com/PureAspiration/Valemporium), [ValorantClientAPI](https://github.com/HeyM1ke/ValorantClientAPI), [python-riot-auth](https://github.com/floxay/python-riot-auth), [Valorant-API](https://valorant-api.com/)",
