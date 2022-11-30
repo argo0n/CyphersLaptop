@@ -245,7 +245,6 @@ class StoreReminder(commands.Cog):
         await self.client.db.execute("DELETE FROM duck_messages WHERE send_date=$1", todays_date)
         await self.client.update_service_status("Daily Store Reminder", round(time.time()))
 
-
     @reminder_loop.before_loop
     async def wait_until_reset(self):
         await self.client.wait_until_ready()

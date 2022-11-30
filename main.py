@@ -20,9 +20,9 @@ strfformat = "%d-%m-%y %H:%M:%S"
 
 AVAILABLE_EXTENSIONS = [
     "cogs.maincommands",
-    "cogs.reminders",
+    "cogs.others",
     "cogs.errors",
-    "cogs.dev"
+
 ]
 
 load_dotenv('credentials.env')
