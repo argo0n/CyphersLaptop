@@ -4,7 +4,6 @@ from io import BytesIO
 
 import aiohttp
 import discord
-from discord import permissions
 from discord.ext import commands
 
 from main import clvt
@@ -23,6 +22,44 @@ from .wishlist import WishListManager
 from .reminders import StoreReminder, ViewStoreFromReminder
 
 load_dotenv()
+
+
+class MultiFactorModal(discord.ui.Modal):
+    def __init__(self):
+        self.interaction: discord.Interaction = None
+        super().__init__(title="Enter MFA Code", timeout=180.0)
+        self.add_item(
+            discord.ui.InputText(label="Enter your MFA Code", placeholder="123456", min_length=6, max_length=6)
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(embed=authenticating(True))
+        self.interaction = interaction
+        self.stop()
+
+class EnterMultiFactor(discord.ui.View):
+    def __init__(self):
+        self.code = None
+        self.modal = MultiFactorModal()
+        super().__init__(timeout=180, disable_on_timeout=True)
+
+    @discord.ui.button(label="Enter MFA Code", style=discord.ButtonStyle.green)
+    async def callback(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(self.modal)
+        await self.modal.wait()
+        button.disabled = True
+        await interaction.message.edit(view=self)
+        self.code = self.modal.children[0].value
+        self.stop()
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.message.interaction is not None:
+            if interaction.message.interaction.user.id == interaction.user.id:
+                return True
+        await interaction.response.send_message("This is not for you!", ephemeral=True)
+        return False
+
+
 
 
 class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
@@ -210,8 +247,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             await ctx.respond(embed=user_updated(riot_account.username), ephemeral=True)
 
     @commands.slash_command(name="store", description="Retrieves your VALORANT Store.")
-    async def store(self, ctx: discord.ApplicationContext,
-                    multifactor_code: discord.Option(str, min_length=6, max_length=6, required=False) = None):
+    async def store(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -221,7 +257,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         try:
             auth = riot_authorization.RiotAuth()
-            await auth.authorize(riot_account.username, riot_account.password, multifactor_code=multifactor_code)
+            await auth.authorize(riot_account.username, riot_account.password)
         except riot_authorization.Exceptions.RiotAuthenticationError:
             await ctx.respond(embed=authentication_error())
             print("Authentication error")
@@ -232,13 +268,27 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return
         except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
-            if multifactor_code is None:
-                await ctx.respond(embed=multifactor_detected())
-                print("Multifactor detected")
+            v = EnterMultiFactor()
+            await ctx.respond(embed=multifactor_detected(), view=v)
+            await v.wait()
+            if v.code is None:
                 return
-            await ctx.respond(embed=multifactor_error())
-            print("Multifactor authentication error")
-            return
+            try:
+                auth = riot_authorization.RiotAuth()
+                await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+            except riot_authorization.Exceptions.RiotAuthenticationError:
+                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                print("Authentication error")
+                return
+            except riot_authorization.Exceptions.RiotRatelimitError:
+                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                print("Rate limited")
+                return
+            except riot_authorization.Exceptions.RiotMultifactorError:
+                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                print("Multifactor error")
+                return
+            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
         headers = {
             "Authorization": f"Bearer {auth.access_token}",
             "User-Agent": riot_account.username,
@@ -420,7 +470,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         # embed.add_field(name="\u200b", value="\u200b", inline=False)
         embed.add_field(name="Developer", value="Argon#0002", inline=True)
         embed.add_field(name="Privacy",
-                        value="Passwords are encrypted with Fernet and stored in a secure database.", inline=True)
+                        value="Passwords are encrypted with Fernet and stored in a secure database. Not even the developer can view them.", inline=True)
         embed.add_field(name="Source",
                         value="[GitHub](https://github.com/argo0n/CyphersLaptop)",
                         inline=True)

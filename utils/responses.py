@@ -90,6 +90,15 @@ def no_cached_store():
 
 # ------- Riot Authentication Errors/Responses -------
 
+def authenticating(with_mfa_code: bool = False):
+    if with_mfa_code:
+        return discord.Embed(title="Authenticating...", description="Authenticating your Riot account with your MFA code...", color=discord.Color.orange())
+    else:
+        return discord.Embed(title="Authenticating...", description="Authenticating your Riot account...", color=discord.Color.orange())
+
+def authentication_success():
+    return discord.Embed(title="Success", description="Your Riot account has been successfully authenticated.", color=discord.Color.green())
+
 def authentication_error(is_update_or_login_command: bool = False):
     if is_update_or_login_command:
         remark = ""
@@ -103,16 +112,20 @@ def rate_limit_error():
 
 
 def multifactor_detected():
-    return discord.Embed(title="Enter 2 Factor Authentication (2FA) Code", description="Your account has 2FA enabled.\nCheck your emails for the code and use the command again: </store:1045171702612639836> <multifactor_code>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
+    return discord.Embed(title="Enter Multi Factor Authentication (MFA) Code", description="Your account has MFA enabled.\nA code has been sent to your email, check your email for the code and enter it below.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
 
 
 def multifactor_error():
-    return discord.Embed(title="Multifactor Failed", description="The 2FA code you entered was incorrect.\nPlease confirm your code or request a new code with the command: </store:1045171702612639836> <multifactor_code>.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
+    return discord.Embed(title="Multifactor Failed", description="The MFA code you entered was incorrect.\nPlease rerun the command to re-enter the code or request for a new one.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
+
 
 def skin_not_found(skin_name):
     return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name {skin_name}.", color=discord.Color.red())
+
+
 def not_ready():
     return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
+
 
 def skin_embed(skin: GunSkin, is_in_wishlist: bool):
 
