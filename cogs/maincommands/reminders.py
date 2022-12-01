@@ -19,7 +19,7 @@ class ViewStoreFromDaily(discord.ui.Button):
         super().__init__(label="View Store", custom_id="view_storev1")
 
     async def callback(self, interaction: discord.Interaction):
-        date_asstr = discord.utils.utcnow().strftime("%A, %m %B %y")
+        date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
         riot_account: RiotUser = await self.DBManager.get_user_by_user_id(interaction.user.id)
         message_date = interaction.message.created_at.date()
         skins = await interaction.client.db.fetchrow("SELECT * FROM cached_stores WHERE user_id=$1 AND store_date=$2", interaction.user.id, message_date)
