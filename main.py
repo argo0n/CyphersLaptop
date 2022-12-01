@@ -22,6 +22,7 @@ AVAILABLE_EXTENSIONS = [
     "cogs.maincommands",
     "cogs.others",
     "cogs.errors",
+    "cogs.dev"
 
 ]
 
