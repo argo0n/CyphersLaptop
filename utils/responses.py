@@ -72,7 +72,7 @@ def skin_not_on_wishlist(skin_name):
     return discord.Embed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.", color=discord.Color.red())
 
 def store_here(skin_in_wishlist):
-    date_asstr = discord.utils.utcnow().strftime("%A, %m %B %y")
+    date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
     if skin_in_wishlist:
         return (
             discord.Embed(title="Your VALORANT Store has reset! You have WISHLISTED SKINS in your store", description="Tap here to check it!", color=3092790),
