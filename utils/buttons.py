@@ -79,11 +79,11 @@ class AddToWishListButton(discord.ui.Button):
         # skin and user id is only for initializing the button style, during execution we use data from the message
         self.db_manager = db_manager
         if is_in_wishlist is not True:
-            emoji = discord.PartialEmoji.from_str("<:wlGUN:1046281227142975538>")
+            emoji = discord.PartialEmoji.from_str("<:naWL_gun:1047023572826206288>")
             label = "Add to wishlist"
             style = discord.ButtonStyle.grey
         else:
-            emoji = discord.PartialEmoji.from_str("<:naWL_gun:1047023572826206288>")
+            emoji = discord.PartialEmoji.from_str("<:wlGUN:1046281227142975538>")
             label = "Wishlisted"
             style = discord.ButtonStyle.green
 
