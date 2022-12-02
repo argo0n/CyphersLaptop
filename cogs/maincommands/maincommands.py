@@ -321,7 +321,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         return
 
     @commands.slash_command(name="get-raw-credentials",
-                            description="Get raw credentials of your Riot account to access the VALORANT API.")
+                            description="Get raw credentials of your Riot account to access the VALORANT API.", guild_ids=[801457328346890241])
     @discord.default_permissions(administrator=True)
     @checks.dev()
     async def get_raw_credentials(self, ctx: discord.ApplicationContext,
@@ -383,7 +383,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
 
     @checks.dev()
     @commands.slash_command(name="update_skins_database",
-                            description="Manually update the internal VALORANT gun skins database.")
+                            description="Manually update the internal VALORANT gun skins database.", guild_ids=[801457328346890241])
     @discord.default_permissions(administrator=True)
     async def update_skins_database(self, ctx: discord.ApplicationContext,
                                     multifactor_code: discord.Option(str, "Your Riot multifactor code",
