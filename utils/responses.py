@@ -85,7 +85,7 @@ def store_here(skin_in_wishlist):
         )
 
 def no_cached_store():
-    return discord.Embed(title="Daily Store Error", description="We were unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.", color=discord.Color.red())
+    return discord.Embed(title="Daily Store Error", description="I was unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.", color=discord.Color.red())
 
 
 # ------- Riot Authentication Errors/Responses -------
@@ -120,7 +120,7 @@ def multifactor_error():
 
 
 def skin_not_found(skin_name):
-    return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name {skin_name}.", color=discord.Color.red())
+    return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name **{skin_name}**.", color=discord.Color.red())
 
 
 def not_ready():
@@ -183,7 +183,7 @@ def permission_error():
 def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorization_failed", "rate_limit"]) -> list[discord.Embed]:
     responses = {
         "no_account": "You do not have a Riot account logged in to Cypher's Laptop.",
-        "mfa_enabled": "**You have Multi-factor Authentication (MFA) enabled for your Riot account.**\nFor your convenience, we are unable to provide you your daily Store if MFA is enabled.\nYou can continue using the </store:1045171702612639836> command to check your daily Store.",
+        "mfa_enabled": "**You have Multi-factor Authentication (MFA) enabled for your Riot account.**\nFor your convenience, I am unable to provide you your daily Store if MFA is enabled.\nYou can continue using the </store:1045171702612639836> command to check your daily Store.",
         "authorization_failed": "Cypher's Laptop was unable to login to your Riot account."
     }
     embeds = []
