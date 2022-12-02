@@ -375,8 +375,8 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return await ctx.respond(embed=not_ready())
         skin = await self.dbManager.get_skin_by_name(name)
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
-        view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
         if skin:
+            view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
             await ctx.respond(embed=skin_embed(skin, False), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
