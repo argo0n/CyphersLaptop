@@ -6,7 +6,7 @@
             "symbol_native": "\u20ac",
             "decimal_digits": 2,
             "code": "EUR",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.01052632,
             "emoji": "\uD83C\uDDEA\uD83C\uDDFA"
         },
         "USD": {
@@ -15,7 +15,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "USD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.01052105,
             "emoji": "\uD83C\uDDFA\uD83C\uDDF8"
         },
         "JPY": {
