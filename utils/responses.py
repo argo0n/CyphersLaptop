@@ -172,7 +172,16 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = N
                 currencies = json.load(f)
             exch = currency["exch"]
             vp_per_dollar = currencies["data"]["USD"]["vp_per_dollar"] * exch
-        cost += f" *≈ {currency['symbol']} {round(skin.cost * vp_per_dollar, currency['decimal_digits'])}*"
+        if currency['decimal_digits'] == 0:
+            cost_rounded = int(skin.cost * vp_per_dollar)
+            cost_fr = comma_number(cost_rounded)
+        else:
+            cost_rounded = round(skin.cost * vp_per_dollar, currency['decimal_digits'])
+            #comma_number doesn't work with decimals, so we need to split the whole number and decimal and run comma_number on whole number before joining it with decimal
+            cost_fr = comma_number(int(cost_rounded)) + "." + str(cost_rounded).split(".")[1]
+
+
+        cost += f" *≈ {currency['symbol']} {cost_fr}*"
 
     embed = discord.Embed(title=skin.displayName, description=f"{cost}")
     if tier is not None:
