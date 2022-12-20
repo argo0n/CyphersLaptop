@@ -6,7 +6,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "AUD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.152285,
             "emoji": "\uD83C\uDDE6\uD83C\uDDFA"
         },
         "BRL": {
@@ -15,7 +15,7 @@
             "symbol_native": "R$",
             "decimal_digits": 2,
             "code": "BRL",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.03549764,
             "emoji": "\uD83C\uDDE7\uD83C\uDDF7"
         },
         "GBP": {
@@ -24,7 +24,7 @@
             "symbol_native": "\u00a3",
             "decimal_digits": 2,
             "code": "GBP",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.00952381,
             "emoji": "\uD83C\uDDEC\uD83C\uDDE7"
         },
         "BGN": {
@@ -43,7 +43,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "CAD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.03549763,
             "emoji": "\uD83C\uDDE8\uD83C\uDDE6"
         },
         "CNY": {
@@ -100,7 +100,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "HKD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.07707317,
             "emoji": "\uD83C\uDDED\uD83C\uDDF0"
         },
         "HUF": {
@@ -125,11 +125,11 @@
         },
         "INR": {
             "symbol": "Rs",
-            "name": "Indian rupees",
+            "name": "Indian rupees (via Paytm)",
             "symbol_native": "\u099f\u0995\u09be",
             "decimal_digits": 2,
             "code": "INR",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.84157895,
             "emoji": "\uD83C\uDDEE\uD83C\uDDF3"
         },
         "IDR": {
@@ -138,7 +138,7 @@
             "symbol_native": "Rp",
             "decimal_digits": 0,
             "code": "IDR",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 109.09090909,
             "emoji": "\uD83C\uDDEE\uD83C\uDDE9"
         },
         "ILS": {
@@ -165,7 +165,7 @@
             "symbol_native": "RM",
             "decimal_digits": 2,
             "code": "MYR",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.03457539,
             "emoji": "\uD83C\uDDF2\uD83C\uDDFE"
         },
         "MXN": {
@@ -174,7 +174,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "MXN",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.21,
             "emoji": "\uD83C\uDDF2\uD83C\uDDFD"
         },
         "NZD": {
@@ -183,7 +183,7 @@
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "NZD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.01715196,
             "emoji": "\uD83C\uDDF3\uD83C\uDDFF"
         },
         "NOK": {
@@ -202,7 +202,7 @@
             "symbol_native": "\u20b1",
             "decimal_digits": 2,
             "code": "PHP",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.36363636,
             "emoji": "\uD83C\uDDF5\uD83C\uDDED"
         },
         "PLN": {
@@ -224,6 +224,15 @@
             "vp_per_dollar": 0,
             "emoji": "\uD83C\uDDF7\uD83C\uDDF4"
         },
+        "RUB": {
+            "symbol": "RUB",
+            "name": "Russian rubles",
+            "symbol_native": "\u20bd",
+            "decimal_digits": 2,
+            "code": "RUB",
+            "vp_per_dollar": 0.65816327,
+            "emoji": "\uD83C\uDDF7\uD83C\uDDFA"
+        },
         "KRW": {
             "symbol": "\u20a9",
             "name": "South Korean won",
@@ -233,22 +242,13 @@
             "vp_per_dollar": 0,
             "emoji": "\uD83C\uDDF0\uD83C\uDDF7"
         },
-        "RUB": {
-            "symbol": "RUB",
-            "name": "Russian rubles",
-            "symbol_native": "\u20bd",
-            "decimal_digits": 2,
-            "code": "RUB",
-            "vp_per_dollar": 0,
-            "emoji": "\uD83C\uDDF7\uD83C\uDDFA"
-        },
         "SGD": {
             "symbol": "S$",
             "name": "Singapore dollars",
             "symbol_native": "$",
             "decimal_digits": 2,
             "code": "SGD",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.01315443,
             "emoji": "\uD83C\uDDF8\uD83C\uDDEC"
         },
         "ZAR": {
@@ -285,7 +285,7 @@
             "symbol_native": "\u0e3f",
             "decimal_digits": 2,
             "code": "THB",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.25706941,
             "emoji": "\uD83C\uDDF9\uD83C\uDDED"
         },
         "TRY": {
@@ -294,7 +294,7 @@
             "symbol_native": "TL",
             "decimal_digits": 2,
             "code": "TRY",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 0.9701493,
             "emoji": "\uD83C\uDDF9\uD83C\uDDF7"
         },
         "USD": {
@@ -312,7 +312,7 @@
             "symbol_native": "\u20ab",
             "decimal_digits": 0,
             "code": "VND",
-            "vp_per_dollar": 0,
+            "vp_per_dollar": 172.711572,
             "emoji": "\uD83C\uDDFB\uD83C\uDDF3"
         }
     }
