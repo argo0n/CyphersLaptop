@@ -106,10 +106,13 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         else:
             return None
 
-    def get_currency_details(self, currency_code: str):
+    async def get_currency_details(self, currency_code: str):
         with open("assets/currencies.json") as f:
             currencies = json.load(f)
-        return currencies["data"].get(currency_code.upper(), None)
+        a = currencies["data"].get(currency_code.upper(), None)
+        if a is not None and a["vp_per_dollar"] == 0:
+            a["exch"] = await self.get_currency(a["code"])
+        return a
 
     async def valorant_skin_autocomplete(self, ctx: discord.AutocompleteContext):
         if not self.ready:
@@ -345,9 +348,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
                                 description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)]
-        currency = self.get_currency_details(user_settings.currency)
-        if currency is not None and currency["vp_per_dollar"] == 0:
-            currency["exch"] = await self.get_currency(currency["code"])
+        currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
         for uuid in skin_uuids:
@@ -424,7 +425,9 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
         if skin:
             view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
-            await ctx.respond(embed=skin_embed(skin, False), view=view)
+            user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+            currency = await self.get_currency_details(user_settings.currency)
+            await ctx.respond(embed=skin_embed(skin, False, currency), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
 
