@@ -36,60 +36,63 @@ class SelectCurrency(discord.ui.Select):
             vp_per_dollar = currency_data['vp_per_dollar']
             name = currency_data['name']
             symbol = currency_data['symbol']
+            emoji = currency_data['emoji']
             if vp_per_dollar == 0:
                 desc = "calculated via USD"
             else:
                 desc = None
-            self.all_currency_options.append(discord.SelectOption(label=f"{name} ({symbol})", value=currency, description=desc or "", default=currency == user_setting.currency))
+            self.all_currency_options.append(discord.SelectOption(label=f"{name} ({symbol})", value=currency, description=desc or "", default=currency == user_setting.currency, emoji=emoji))
 
-        options = []
         if user_setting.currency is None:
             ph = "Select a letter range"
-            options = [
-                discord.SelectOption(label="A-E"),
-                discord.SelectOption(label="F-J"),
-                discord.SelectOption(label="K-O"),
-                discord.SelectOption(label="P-T"),
-                discord.SelectOption(label="U-Z")
-            ]
         else:
+            self.secondary_menu = True
+            self.currency_range = range_char_from_letter(user_setting.currency[0].lower())
             ph = "Select a currency"
-            options.append(discord.SelectOption(label="Back to letter ranges", value="back", emoji="<:back:1054664049020915742>"))
-            first_letter = currencies['data'][user_setting.currency]['name'].split()[0].lower()
-            char_range = range_char_from_letter(first_letter)
-            for op in self.all_currency_options:
-                if op.label.lower().split()[0] in char_range:
-                    options.append(op)
+        options = self.update_options(user_setting.currency, True)
+
         super().__init__(placeholder=ph, options=options, min_values=1, max_values=1)
 
-    def update_options(self, selected_currency: Optional[str] = None):
-        self.options = []
+    def update_options(self, selected_currency: Optional[str] = None, first_time=False):
+        options = []
         if self.secondary_menu:
-            self.placeholder = "Select a currency"
-            self.options.append(discord.SelectOption(label="Back to letter ranges", value="back", emoji="<:back:1054664049020915742>"))
+            ph = f"Select a currency starting from {self.currency_range[0].upper()} to {self.currency_range[-1].upper()}"
+            options.append(discord.SelectOption(label="Back to letter ranges", value="back", emoji="<:back:1054664049020915742>"))
+            options.append(discord.SelectOption(label="No currency", value="none"))
             for op in self.all_currency_options:
                 a = op.label.lower()[0]
                 if a in self.currency_range:
-                    self.options.append(op)
-                    if self.options[-1].value == selected_currency:
-                        self.options[-1].default = True
+                    options.append(op)
+                    if options[-1].value == selected_currency:
+                        options[-1].default = True
                     else:
-                        self.options[-1].default = False
+                        options[-1].default = False
         else:
-            self.options = [
+            options = [
+                discord.SelectOption(label="No currency", value="none"),
                 discord.SelectOption(label="A-E", value="a-e"),
                 discord.SelectOption(label="F-J", value="f-j"),
                 discord.SelectOption(label="K-O", value="k-o"),
                 discord.SelectOption(label="P-T", value="p-t"),
                 discord.SelectOption(label="U-Z", value="u-z")
             ]
-            self.placeholder = "Select a letter range"
+            ph = "Select a letter range"
+        if not first_time:
+            self.options = options
+            self.placeholder = ph
+        else:
+            return options
 
     async def callback(self, interaction: discord.Interaction):
         if self.values[0] == "back":
             self.secondary_menu = False
             self.currency_range = []
-        if "-" in self.values[0]:
+        elif self.values[0] == "none":
+            setattr(self.view.user_setting, self.view.current_selected, None)
+            await self.view.user_setting.update(interaction.client)
+            self.secondary_menu = False
+            self.currency_range = []
+        elif "-" in self.values[0]:
             self.secondary_menu = True
             first_letter, last_letter = self.values[0].split("-")
             self.currency_range = range_char(first_letter, last_letter)
@@ -98,6 +101,8 @@ class SelectCurrency(discord.ui.Select):
             await self.view.user_setting.update(interaction.client)
         self.update_options(self.values[0])
         await interaction.response.edit_message(view=self.view)
+        if self.values[0] == "none":
+            await interaction.followup.send("I will not show the price of your skins.", ephemeral=True)
 
 
 class EnableDisable(discord.ui.Button):
