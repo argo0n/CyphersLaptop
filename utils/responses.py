@@ -172,7 +172,7 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = N
                 currencies = json.load(f)
             exch = currency["exch"]
             vp_per_dollar = currencies["data"]["USD"]["vp_per_dollar"] * exch
-            cost += f" *≈ {currency['symbol']} {round(skin.cost * vp_per_dollar, currency['decimal_digits'])}*"
+        cost += f" *≈ {currency['symbol']} {round(skin.cost * vp_per_dollar, currency['decimal_digits'])}*"
 
     embed = discord.Embed(title=skin.displayName, description=f"{cost}")
     if tier is not None:
