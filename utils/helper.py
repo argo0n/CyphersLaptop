@@ -140,6 +140,22 @@ async def paste(text: str):
             return f"{base_url}/{key}"
 
 
+def range_char(start, stop):
+    return [i.lower() for i in (chr(n) for n in range(ord(start), ord(stop) + 1))]
+
+def range_char_from_letter(char):
+    # use range_char to get return a range from a-e, f-j, etc
+    if char in range_char('a', 'e'):
+        return range_char('a', 'e')
+    elif char in range_char('f', 'j'):
+        return range_char('f', 'j')
+    elif char in range_char('k', 'o'):
+        return range_char('k', 'o')
+    elif char in range_char('p', 't'):
+        return range_char('p', 't')
+    elif char in range_char('u', 'z'):
+        return range_char('u', 'z')
+
 
 def get_region_code(region: str):
     if region == "Asia Pacific":

@@ -1,7 +1,7 @@
 import asyncpg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
-from utils.specialobjects import RiotUser, GunSkin, ReminderConfig
+from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting
 import os
 
 load_dotenv()
@@ -103,6 +103,13 @@ class DBManager:
             await self.pool_pg.execute("INSERT INTO store_reminder(user_id) VALUES ($1)", user_id)
             rem_db = await self.pool_pg.fetchrow("SELECT * FROM store_reminder WHERE user_id = $1", user_id)
         return ReminderConfig(rem_db)
+    
+    async def fetch_user_settings(self, user_id) -> UserSetting:
+        usr_se_db = await self.pool_pg.fetchrow("SELECT * FROM user_settings WHERE user_id = $1", user_id)
+        if usr_se_db is None:
+            await self.pool_pg.execute("INSERT INTO user_settings(user_id) VALUES ($1)", user_id)
+            usr_se_db = await self.pool_pg.fetchrow("SELECT * FROM user_settings WHERE user_id = $1", user_id)
+        return UserSetting(usr_se_db)
     
     async def fetch_reminders(self) -> list[ReminderConfig]:
         reminders = await self.pool_pg.fetch("SELECT * FROM store_reminder")
