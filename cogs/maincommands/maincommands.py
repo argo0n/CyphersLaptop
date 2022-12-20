@@ -106,6 +106,11 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         else:
             return None
 
+    def get_currency_details(self, currency_code: str):
+        with open("assets/currencies.json") as f:
+            currencies = json.load(f)
+        return currencies["data"].get(currency_code.upper(), None)
+
     async def valorant_skin_autocomplete(self, ctx: discord.AutocompleteContext):
         if not self.ready:
             return ["Cypher's Laptop is still booting up. Try again in a few seconds!"]
@@ -336,10 +341,13 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
         skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
-        embeds = []
-        base_detail = discord.Embed(title=f"{riot_account.username}'s <:val:1046289333344288808> VALORANT Store ",
-                                    description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)
-        embeds.append(base_detail)
+        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+        usrn = riot_account.username if user_settings.show_username else ctx.author.name
+        embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
+                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)]
+        currency = self.get_currency_details(user_settings.currency)
+        if currency is not None and currency["vp_per_dollar"] == 0:
+            currency["exch"] = await self.get_currency(currency["code"])
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
         for uuid in skin_uuids:
@@ -350,7 +358,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
                     is_in_wishlist = True
                 else:
                     is_in_wishlist = False
-                embeds.append(skin_embed(sk, is_in_wishlist))
+                embeds.append(skin_embed(sk, is_in_wishlist, currency))
         if len(embeds) > 0 and wishlisted > 0:
             embeds[0].set_footer(text=f"There are skins from your wishlist!",
                                  icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")

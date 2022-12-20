@@ -1,4 +1,5 @@
-from typing import Literal
+import json
+from typing import Literal, Optional
 
 import discord
 
@@ -127,7 +128,7 @@ def not_ready():
     return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
 
 
-def skin_embed(skin: GunSkin, is_in_wishlist: bool):
+def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = None):
 
     tier_uuids = [
         {
@@ -164,7 +165,16 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool):
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
     print(skin)
     cost = f"<:vp:1045605973005434940> **{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
-    embed = discord.Embed(title=skin.displayName, description=f" {cost}")
+    if currency is not None:
+        vp_per_dollar = currency["vp_per_dollar"]
+        if vp_per_dollar == 0:
+            with open("assets/currencies.json") as f:
+                currencies = json.load(f)
+            exch = currency["exch"]
+            vp_per_dollar = currencies["data"]["USD"]["vp_per_dollar"] * exch
+            cost += f" *≈ {currency['symbol']} {round(skin.cost * vp_per_dollar, currency['decimal_digits'])}*"
+
+    embed = discord.Embed(title=skin.displayName, description=f"{cost}")
     if tier is not None:
         embed.color = tier["color"]
         embed.description += f"\n{tier['emoji']} {tier['name']}"
@@ -178,7 +188,7 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool):
 # ------- Discord Bot Setup Error Responses -------
 
 def permission_error():
-    return discord.Embed(title="Permission Error (403 Forbidden)", description="Permissions in this server channel do not allow messages to be sent.\nA server admin will need to allow message sending for Valemporium in channel permission settings.", color=discord.Color.dark_red())
+    return discord.Embed(title="Permission Error (403 Forbidden)", description="Permissions in this server channel do not allow messages to be sent.\nA server admin will need to allow message sending for Cypher's Laptop in channel permission settings.", color=discord.Color.dark_red())
 
 def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorization_failed", "rate_limit"]) -> list[discord.Embed]:
     responses = {
@@ -203,7 +213,7 @@ def unknown_error():
 # ------- Informational Responses -------
 
 def help_command(is_dev):
-    embed = discord.Embed(title="Valemporium - Help", description="All available commands and important command arguments", color=discord.Color.blue())
+    embed = discord.Embed(title="Cypher's Laptop - Help", description="All available commands and important command arguments", color=discord.Color.blue())
     embed.add_field(name="</store:1045171702612639836>", value="Retrieves your VALORANT store.", inline=True)
     embed.add_field(name="</reminders:1046432239724015697>", value="Configure your Store reminders!", inline=True)
     embed.add_field(name="</invite:1045732151506767974>", value="Invite Cypher's Laptop to your server!", inline=True)
