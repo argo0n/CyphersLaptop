@@ -72,3 +72,17 @@ class GunSkin:
     def __repr__(self):
         return f"<GunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID}>"
 
+
+class UserSetting:
+    __slots__ = ('user_id', 'currency', 'show_username')
+
+    def __init__(self, record):
+        self.user_id: int = record.get('user_id')
+        self.currency: Union[str, None] = record.get('currency')
+        self.show_username: bool = record.get('show_username')
+
+    def __repr__(self) -> str:
+        return f"<UserSetting user_id={self.user_id} currency={self.currency}> show_username={self.show_username}"
+
+    async def update(self, client):
+        await client.db.execute("UPDATE user_settings SET currency=$1, show_username=$2 WHERE user_id=$3", self.currency, self.show_username, self.user_id)

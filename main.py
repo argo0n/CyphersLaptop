@@ -13,6 +13,7 @@ from discord.ext import commands, tasks
 from utils.context import CLVTcontext
 from utils.format import print_exception
 from utils.specialobjects import MISSING
+import aioredis
 
 
 strfformat = "%d-%m-%y %H:%M:%S"
@@ -47,6 +48,7 @@ class clvt(commands.Bot):
         self.uptime = None
         self.embed_color: int = 0x57F0F0
         self.db: asyncpg.pool = None
+        self.redis_pool: aioredis.ConnectionPool = None
         self.serverconfig = {}
         self.maintenance = {}
         self.maintenance_message = {}
@@ -75,7 +77,7 @@ class clvt(commands.Bot):
 
     async def on_ready(self):
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Loaded all Server Configurations")
-        all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist", "store_reminder", "cached_stores", "duck_messages"]
+        all_tables = ['prefixes', "valorant_login", "devmode", "skins", "wishlist", "store_reminder", "cached_stores", "duck_messages", "user_settings"]
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Checking for missing databases")
         tables = await self.db.fetch("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE';")
         tables = [i.get('table_name') for i in tables]
@@ -99,6 +101,7 @@ class clvt(commands.Bot):
                 CREATE TABLE IF NOT EXISTS store_reminder(user_id bigint not null, enabled bool default false not null, show_immediately bool default false not null, picture_mode bool default false not null);
                 CREATE TABLE IF NOT EXISTS cached_stores(user_id bigint not null, store_date date default CURRENT_DATE not null,  skin1_uuid text not null, skin2_uuid text not null, skin3_uuid text not null, skin4_uuid text not null);
                 CREATE TABLE IF NOT EXISTS duck_messages(send_date date not null, message text not null);
+                CREATE TABLE IF NOT EXISTS user_settings(user_id bigint not null, currency text, show_username bool not null default true);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")
 
@@ -177,8 +180,19 @@ class clvt(commands.Bot):
             self.uptime = discord.utils.utcnow()
             self.db = pool_pg
             print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Connected to the database")
-            self.loop.create_task(self.after_ready())
-            self.run(token)
+            try:
+                redis_pool = self.loop.run_until_complete(aioredis.from_url(
+                    "redis://localhost",
+                    encoding="utf-8"
+                ))
+            except Exception as e:
+                print_exception(f"{datetime.datetime.utcnow().strftime(strfformat)} | Could not connect to redis:", e)
+            else:
+                self.redis_pool = redis_pool
+                print(f"{datetime.datetime.utcnow().strftime(strfformat)} | Connected to redis")
+                self.loop.create_task(self.after_ready())
+                self.run(token)
+
 
 if __name__ == '__main__':
     client = clvt()
