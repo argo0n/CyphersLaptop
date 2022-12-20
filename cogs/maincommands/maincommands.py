@@ -79,6 +79,32 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         self.client.add_view(ThumbnailToImageOnly())
         self.client.add_view(ViewStoreFromReminder(self.dbManager))
 
+    async def fetch_currency_api(self):
+        key = os.getenv("CURRENCY_API")
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                "apikey": key
+            }
+            async with session.get("https://api.freecurrencyapi.com/v1/latest", headers=headers) as resp:
+                if resp.status == 200:
+                    return (await resp.json())["data"]
+
+    async def get_currencies(self):
+        currency = await self.client.redis_pool.get("currency")
+        if currency is None:
+            currency = await self.fetch_currency_api()
+            await self.client.redis_pool.set("currency", json.dumps(currency))
+            await self.client.redis_pool.expire("currency", 86400)
+        else:
+            currency = json.loads(currency)
+        return currency
+
+    async def get_currency(self, currency_code: str):
+        currency = await self.get_currencies()
+        if currency_code.upper() in currency:
+            return currency[currency_code.upper()]
+        else:
+            return None
 
     async def valorant_skin_autocomplete(self, ctx: discord.AutocompleteContext):
         if not self.ready:
@@ -95,8 +121,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return [s.displayName for s in sk[:25]]
 
     @commands.slash_command(name="balance", description="View your VALORANT points and Radianite balance.")
-    async def balance(self, ctx: discord.ApplicationContext,
-                      multifactor_code: discord.Option(str, "Your multifactor code", required=False) = None):
+    async def balance(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -106,7 +131,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         try:
             auth = riot_authorization.RiotAuth()
-            await auth.authorize(riot_account.username, riot_account.password, multifactor_code=multifactor_code)
+            await auth.authorize(riot_account.username, riot_account.password)
         except riot_authorization.Exceptions.RiotAuthenticationError:
             await ctx.respond(embed=authentication_error())
             print("Authentication error")
@@ -115,15 +140,29 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             await ctx.respond(embed=rate_limit_error())
             print("Rate limited")
             return
-        except riot_authorization.Exceptions.RiotMultifactorError:
+            except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
-            if multifactor_code is None:
-                await ctx.respond(embed=multifactor_detected())
-                print("Multifactor detected")
+            v = EnterMultiFactor()
+            await ctx.respond(embed=multifactor_detected(), view=v)
+            await v.wait()
+            if v.code is None:
                 return
-            await ctx.respond(embed=multifactor_error())
-            print("Multifactor authentication error")
-            return
+            try:
+                auth = riot_authorization.RiotAuth()
+                await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+            except riot_authorization.Exceptions.RiotAuthenticationError:
+                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                print("Authentication error")
+                return
+            except riot_authorization.Exceptions.RiotRatelimitError:
+                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                print("Rate limited")
+                return
+            except riot_authorization.Exceptions.RiotMultifactorError:
+                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                print("Multifactor error")
+                return
+            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
         headers = {
             "Authorization": f"Bearer {auth.access_token}",
             "User-Agent": riot_account.username,
