@@ -26,3 +26,4 @@ Wand==0.6.8
 expr.py
 cryptography
 requests
+aioredis
