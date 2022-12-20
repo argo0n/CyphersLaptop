@@ -140,7 +140,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             await ctx.respond(embed=rate_limit_error())
             print("Rate limited")
             return
-            except riot_authorization.Exceptions.RiotMultifactorError:
+        except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
             v = EnterMultiFactor()
             await ctx.respond(embed=multifactor_detected(), view=v)
