@@ -2,6 +2,7 @@ import functools
 import getpass
 import importlib
 import io
+import json
 import os
 import re
 import ast
@@ -27,6 +28,7 @@ from abc import ABC
 
 from main import clvt
 from utils import checks
+from utils.helper import DynamicUpdater, range_char
 from .status import Status
 from .botutils import BotUtils
 from .autostatus import AutoStatus
@@ -39,6 +41,93 @@ from utils.context import CLVTcontext
 from utils.converters import MemberUserConverter, TrueFalse
 
 
+## CHANGELOG VIEWS
+
+
+class SelectCurrencyLowLevelView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+        self.add_item(SelectCurrency())
+
+
+class SelectCurrency(discord.ui.Select):
+    def __init__(self):
+        self.secondary_menu = False
+        self.currency_range = []
+        self.all_currency_options = []
+
+        with open('assets/currencies.json') as f:
+            currencies = json.load(f)
+        for currency in currencies['data']:
+            currency_data = currencies['data'][currency]
+            vp_per_dollar = currency_data['vp_per_dollar']
+            name = currency_data['name']
+            symbol = currency_data['symbol']
+            emoji = currency_data['emoji']
+            if vp_per_dollar == 0:
+                desc = "calculated via USD"
+            else:
+                desc = None
+            self.all_currency_options.append(discord.SelectOption(label=f"{name} ({symbol})", value=currency, description=desc or "", emoji=emoji))
+        ph = "Select a letter range"
+        options = self.update_options(None, True)
+
+        super().__init__(placeholder=ph, options=options, min_values=1, max_values=1, custom_id="currency_selectv1")
+
+    def update_options(self, selected_currency: Optional[str] = None, first_time=False):
+        options = []
+        if first_time is not True:
+            if self.values[0] != "back" and "-" not in self.values[0]:
+                s_op = discord.utils.get(self.all_currency_options, value=self.values[0])
+                f_c = s_op.label[0].lower()
+                self.secondary_menu = True
+                self.currency_range = range_char(f_c, chr(ord(f_c)+1))
+        if self.secondary_menu:
+            ph = f"Select a currency starting from {self.currency_range[0].upper()} to {self.currency_range[-1].upper()}"
+            options.append(discord.SelectOption(label="Back to letter ranges", value="back", emoji="<:back:1054664049020915742>"))
+            for op in self.all_currency_options:
+                a = op.label.lower()[0]
+                if a in self.currency_range:
+                    options.append(op)
+                    if options[-1].value == selected_currency:
+                        options[-1].default = True
+                    else:
+                        options[-1].default = False
+        else:
+            options = [
+                discord.SelectOption(label="A-E", value="a-e"),
+                discord.SelectOption(label="F-J", value="f-j"),
+                discord.SelectOption(label="K-O", value="k-o"),
+                discord.SelectOption(label="P-T", value="p-t"),
+                discord.SelectOption(label="U-Z", value="u-z")
+            ]
+            ph = "Select a letter range"
+        if not first_time:  # don't update any internal attributes when used in initiation
+            self.options = options
+            self.placeholder = ph
+        else:
+            return options
+
+    async def callback(self, interaction: discord.Interaction):
+        if self.values[0] == "back":
+            self.secondary_menu = False
+            self.currency_range = []
+        elif "-" in self.values[0]:
+            self.secondary_menu = True
+            first_letter, last_letter = self.values[0].split("-")
+            self.currency_range = range_char(first_letter, last_letter)
+        else:
+            await interaction.client.db.execute("INSERT INTO user_settings(user_id, currency) VALUES ($1, $2) ON CONFLICT (user_id) DO UPDATE SET currency = $2", interaction.user.id, self.values[0])
+            self.disabled = True
+        self.update_options(self.values[0])
+        await interaction.response.edit_message(view=self.view)
+        op = discord.utils.get(self.all_currency_options, value=self.values[0])
+        if op is not None:
+            await interaction.followup.send(f"I will now display the estimate price of weapon skins in **{op.emoji} {op.label}**.\nTo change to another currency or disable it, use </settings:>!", ephemeral=True)
+
+
+## END CHANGELOG VIEWS
 
 class ConfirmContinue(discord.ui.View):
     def __init__(self, ctx):
@@ -156,6 +245,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
     @commands.Cog.listener()
     async def on_ready(self):
         if not self.view_added:
+            self.client.add_view(SelectCurrencyLowLevelView())
             self.view_added = True
 
     @checks.dev()
@@ -526,7 +616,79 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
             if c.returning_value is not True:
                 return
         if exist:
-            await  self.client.db.execute("UPDATE duck_messages SET message = $1, send_date = $2 WHERE send_date = $2", message, send_date)
+            await self.client.db.execute("UPDATE duck_messages SET message = $1, send_date = $2 WHERE send_date = $2", message, send_date)
         else:
             await self.client.db.execute("INSERT INTO duck_messages(send_date, message) VALUES($1, $2)", send_date, message)
             await ctx.respond(f"Message added for {a.strftime('%d/%m/%Y')}")
+
+    @discord.default_permissions(administrator=True)
+    @checks.dev()
+    @commands.slash_command(name="broadcast", description="Broadcast updates.", guild_ids=[801457328346890241])
+    async def broadcast(self, ctx: discord.ApplicationContext,
+                        embed_json: discord.Option(str),
+                        embed_json2: discord.Option(str) = None,
+                        embed_json3: discord.Option(str) = None,
+                        embed_json4: discord.Option(str) = None,
+                        embed_json5: discord.Option(str) = None,
+                        me_only: discord.Option(bool) = True):
+        embeds = []
+        for embed in [embed_json, embed_json2, embed_json3, embed_json4, embed_json5]:
+            if embed is None:
+                continue
+            embeds.append(discord.Embed.from_dict(json.loads(embed)))
+        all_users = await self.client.db.fetch("SELECT user_id FROM store_reminder")
+        if me_only:
+            all_users = [ctx.author.id]
+        else:
+            all_users = [i.get('user_id') for i in all_users]
+        # change it to user_settings after next update
+        text = []
+        m = await ctx.respond("Initiating...")
+        async def update(upd_txt):
+            text.append(upd_txt)
+            await m.edit_original_response(content="\n".join(text))
+        await update(f"Found {len(all_users)} users. Sending messages...")
+        modular = 1 if len(all_users) < 20 else len(all_users) / 20
+        results = {}
+        for index, user_id in enumerate(all_users):
+            user = self.client.get_user(user_id)
+            if user is None:
+                try:
+                    user = await self.client.fetch_user(user_id)
+                except Exception as e:
+                    results['unknown'] = results.get('unknown', 0) + 1
+                    if modular == 1:
+                        await update(f"`[{index+1}/{len(all_users)}]` Unknown user {user_id}.")
+                else:
+                    try:
+                        await user.send(embeds=embeds, view=SelectCurrencyLowLevelView())
+                        results['success'] = results.get('success', 0) + 1
+                        if modular == 1:
+                            await update(f"`[{index+1}/{len(all_users)}]` {user} sent")
+                    except discord.Forbidden:
+                        results['closed'] = results.get('closed', 0) + 1
+                        if modular == 1:
+                            await update(f"`[{index+1}/{len(all_users)}]` Closed {user}")
+                    except Exception as e:
+                        excep_str = str(e)
+                        results[excep_str] = results.get(excep_str, 0) + 1
+                        if modular == 1:
+                            await update(f"`[{index+1}/{len(all_users)}]` Error {e} {user}")
+                if index % modular == 1:
+                    await update(f"`[{index + 1}/{len(all_users)}]` users processed.")
+        summary = []
+        for key, value in results.items():
+            if key == "success":
+                summary.append(f"Sent to {value} users.")
+            elif key == "closed":
+                summary.append(f"{value} users closed their DMs.")
+            elif key == "unknown":
+                summary.append(f"{value} users unknown.")
+            else:
+                summary.append(f"{value} users had an error: {key}")
+        summary = "\n".join(summary)
+        if len("\n".join(text)) + len(summary) > 2000:
+            text_to_file(summary, "broadcast.txt")
+            await ctx.respond(file=discord.File("broadcast.txt"))
+        else:
+            await update(summary)
