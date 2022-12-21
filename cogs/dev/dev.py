@@ -124,7 +124,7 @@ class SelectCurrency(discord.ui.Select):
         await interaction.response.edit_message(view=self.view)
         op = discord.utils.get(self.all_currency_options, value=self.values[0])
         if op is not None:
-            await interaction.followup.send(f"I will now display the estimate price of weapon skins in **{op.emoji} {op.label}**.\nTo change to another currency or disable it, use </settings:>!", ephemeral=True)
+            await interaction.followup.send(f"I will now display the estimate price of weapon skins in **{op.emoji} {op.label}**. To change to another currency or disable it, use </settings:>!\nTry this out now via </store:1045171702612639836>!", ephemeral=True)
 
 
 ## END CHANGELOG VIEWS
