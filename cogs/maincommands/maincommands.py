@@ -107,6 +107,8 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             return None
 
     async def get_currency_details(self, currency_code: str):
+        if currency_code is None:
+            return None
         with open("assets/currencies.json") as f:
             currencies = json.load(f)
         a = currencies["data"].get(currency_code.upper(), None)
