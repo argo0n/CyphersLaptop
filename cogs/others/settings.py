@@ -14,12 +14,12 @@ currency_embed = discord.Embed(
     title="Display Skin Price",
     description="Show the price of a skin in your preferred currency.",
     color=3092790
-).set_image(url="https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000")
+).set_image(url="https://cdn.discordapp.com/attachments/1046947484150284390/1055010191717978112/CLcurrency.png")
 show_username_embed = discord.Embed(
     title="Display your Riot username",
     description="Show your Riot username so you know which account you're looking at, or hide it to stay private.",
     color=3092790
-).set_image(url="https://img.freepik.com/free-vector/red-grunge-style-coming-soon-design_1017-26691.jpg?w=2000")
+).set_image(url="https://cdn.discordapp.com/attachments/1046947484150284390/1055010192154165248/CLusername.png")
 
 
 class SelectCurrency(discord.ui.Select):
