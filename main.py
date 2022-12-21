@@ -101,7 +101,7 @@ class clvt(commands.Bot):
                 CREATE TABLE IF NOT EXISTS store_reminder(user_id bigint not null, enabled bool default false not null, show_immediately bool default false not null, picture_mode bool default false not null);
                 CREATE TABLE IF NOT EXISTS cached_stores(user_id bigint not null, store_date date default CURRENT_DATE not null,  skin1_uuid text not null, skin2_uuid text not null, skin3_uuid text not null, skin4_uuid text not null);
                 CREATE TABLE IF NOT EXISTS duck_messages(send_date date not null, message text not null);
-                CREATE TABLE IF NOT EXISTS user_settings(user_id bigint not null, currency text, show_username bool not null default true);
+                CREATE TABLE IF NOT EXISTS user_settings(user_id bigint not null PRIMARY KEY, currency text, show_username bool not null default true);
                 """)
         print(f"{datetime.datetime.utcnow().strftime(strfformat)} | {self.user} ({self.user.id}) is ready")
 
