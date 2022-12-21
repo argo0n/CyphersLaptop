@@ -14,8 +14,9 @@ from utils.specialobjects import *
 from utils import get_store, riot_authorization
 
 class ViewStoreFromDaily(discord.ui.Button):
-    def __init__(self, DBManager):
+    def __init__(self, DBManager, cog):
         self.DBManager: DBManager = DBManager
+        self.cog = cog
         super().__init__(label="View Store", custom_id="view_storev1")
 
     async def callback(self, interaction: discord.Interaction):
@@ -34,6 +35,8 @@ class ViewStoreFromDaily(discord.ui.Button):
         else:
             base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr)
         embeds = [base_embed]
+        user_settings = await self.DBManager.fetch_user_settings(interaction.user.id)
+        currency = await self.cog.get_currency_details(user_settings.currency)
         for skin in skins:
             sk: GunSkin = await self.DBManager.get_skin_by_uuid(skin)
             if sk.uuid in wishlist:
@@ -41,7 +44,7 @@ class ViewStoreFromDaily(discord.ui.Button):
                 is_wishlist = True
             else:
                 is_wishlist = False
-            embeds.append(skin_embed(sk, is_wishlist))
+            embeds.append(skin_embed(sk, is_wishlist, currency))
         if wishlisted > 0:
             embeds[0].set_footer(text=f"You have {wishlisted} skins wishlisted in this store!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
         await interaction.response.send_message(embeds=embeds, ephemeral=True, view=ThumbnailToImageOnly())
@@ -110,9 +113,9 @@ picture_mode_embed = discord.Embed(title="Show as a picture", description="Show 
 
 
 class ViewStoreFromReminder(discord.ui.View):
-    def __init__(self, DBManager):
+    def __init__(self, DBManager, cog):
         super().__init__(timeout=None)
-        self.add_item(ViewStoreFromDaily(DBManager))
+        self.add_item(ViewStoreFromDaily(DBManager, cog))
 
 
 class ReminderSettingsView(discord.ui.View):
@@ -232,13 +235,11 @@ class StoreReminder(commands.Cog):
                     else:
                         copy.copy(actual_embed)
                         embeds = [actual_embed]
+                        user_settings = await self.dbManager.fetch_user_settings(user.id)
+                        currency = await self.get_currency_details(user_settings.currency)
                         for skin_uuid in skin_uuids:
                             sk = await self.dbManager.get_skin_by_uuid(skin_uuid)
-                            if sk is not False:
-                                if sk.uuid in user_wishlist:
-                                    embeds.append(skin_embed(sk, True))
-                                else:
-                                    embeds.append(skin_embed(sk, False))
+                            embeds.append(skin_embed(sk, sk.uuid in user_wishlist, currency))
                         await m.edit(embeds=embeds, view=ThumbnailToImageOnly())
             except Exception as e:
                 await self.client.error_channel.send(f"Error while processing store for {reminder.user_id}:\n{box(str(e), lang='py')}")

@@ -77,7 +77,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         self.update_skin_db.start()
         self.client.add_view(ThumbnailAndWishlist(self.dbManager))
         self.client.add_view(ThumbnailToImageOnly())
-        self.client.add_view(ViewStoreFromReminder(self.dbManager))
+        self.client.add_view(ViewStoreFromReminder(self.dbManager, self))
 
     async def fetch_currency_api(self):
         key = os.getenv("CURRENCY_API")
