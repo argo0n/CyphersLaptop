@@ -234,6 +234,7 @@ def help_command(is_dev):
     embed.add_field(name="</login:1045213188209258518>", value="Log in to Cypher's Laptop with your Riot account. \nYour password is encrypted and stored securely when you log in.", inline=False)
     embed.add_field(name="</logout:1045213188209258519>", value="Log out of Cypher's Laptop.\nYour credentials are immediately deleted from the database once you log out.", inline=True)
     embed.add_field(name="</update-password:1045212370944929802>", value="Update your Riot account password in Cypher's Laptop if you have changed it.", inline=True)
+    embed.add_field(name="</settings:>", value="Tweak your settings to customize your Cypher's Laptop experience.", inline=True)
     if is_dev:
         embed.add_field(name="DEVELOPER", value="\u200b", inline=False)
         embed.add_field(name="</update-skins-database:1045634432268255303>", value="Manually update the internal VALORANT gun skins database.", inline=True)
