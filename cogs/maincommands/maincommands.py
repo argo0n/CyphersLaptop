@@ -423,13 +423,18 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
                    name: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
-        skin = await self.dbManager.get_skin_by_name(name)
+        skin = await self.dbManager.get_skin_by_name_or_uuid(name)
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
         if skin:
             view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
             user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
             currency = await self.get_currency_details(user_settings.currency)
-            await ctx.respond(embed=skin_embed(skin, False, currency), view=view)
+            e = skin_embed(skin, skin.uuid in wishlist, currency)
+            if await self.client.is_dev(ctx.author.id):
+                c = f"`{skin.uuid}`"
+            else:
+                c = None
+            await ctx.respond(c, embed=skin_embed(skin, False, currency), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
 
