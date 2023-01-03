@@ -163,7 +163,6 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = N
         }
     ]
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
-    print(skin)
     cost = f"<:vp:1045605973005434940> **{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
     if currency is not None:
         vp_per_dollar = currency["vp_per_dollar"]

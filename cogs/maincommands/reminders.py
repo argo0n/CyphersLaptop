@@ -69,7 +69,6 @@ class EnableDisable(discord.ui.Button):
             self.update_button()
         await self.view.reminder_config.update(interaction.client)
         self.view.update_embed()
-        print(self.view.embed.color)
         await interaction.response.edit_message(view=self.view, embed=self.view.embed)
 
     def update_button(self):
