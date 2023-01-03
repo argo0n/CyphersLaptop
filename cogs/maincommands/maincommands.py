@@ -181,7 +181,9 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
         vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
-        embed = discord.Embed(title=f"{riot_account.username}'s Balance",
+        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+        usrn = riot_account.username if user_settings.show_username else ctx.author.name
+        embed = discord.Embed(title=f"{usrn}'s Balance",
                               description=f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
                               color=discord.Color.blurple())
         await ctx.respond(embed=embed)
