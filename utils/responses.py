@@ -128,8 +128,10 @@ def not_ready():
     return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
 
 
-def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = None):
-
+def skin_embed(
+        skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = None,
+        nm_p: Optional[int] = None, nm_c: Optional[int] = None, nm_s: Optional[bool] = True
+    ):
     tier_uuids = [
         {
             "uuid": "12683d76-48d7-84a3-4e09-6985794f0445",
@@ -163,8 +165,12 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = N
         }
     ]
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
-    print(skin)
-    cost = f"<:vp:1045605973005434940> **{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+    if nm_p is not None:
+        cost = f"<:vp:1045605973005434940> ~~{comma_number(skin.cost)}~~ `-{nm_p}%` "
+        skin.cost = nm_c
+    else:
+        cost = "<:vp:1045605973005434940> "
+    cost += f"**{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
     if currency is not None:
         vp_per_dollar = currency["vp_per_dollar"]
         if vp_per_dollar == 0:
@@ -182,12 +188,15 @@ def skin_embed(skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = N
 
 
         cost += f" *≈ {currency['symbol']} {cost_fr}*"
-
-    embed = discord.Embed(title=skin.displayName, description=f"{cost}")
+    if nm_s is True:
+        embed = discord.Embed(title=skin.displayName, description=f"{cost}")
+        embed.set_thumbnail(url=skin.displayIcon)
+    else:
+        embed = discord.Embed().set_image(url="https://cdn.discordapp.com/attachments/805604591630286918/1045968296488480818/CyphersLaptopWideEdited.png")
     if tier is not None:
         embed.color = tier["color"]
-        embed.description += f"\n{tier['emoji']} {tier['name']}"
-    embed.set_thumbnail(url=skin.displayIcon)
+        if nm_s is True:
+            embed.description += f"\n{tier['emoji']} {tier['name']}"
     if is_in_wishlist:
         embed.set_footer(text="This skin is in your wishlist!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
         embed.color = 0xDD2F45

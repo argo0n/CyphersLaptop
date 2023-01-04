@@ -181,7 +181,9 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
         vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
-        embed = discord.Embed(title=f"{riot_account.username}'s Balance",
+        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+        usrn = riot_account.username if user_settings.show_username else ctx.author.name
+        embed = discord.Embed(title=f"{usrn}'s Balance",
                               description=f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
                               color=discord.Color.blurple())
         await ctx.respond(embed=embed)
@@ -295,7 +297,86 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
                                          ctx.author.id)
             await ctx.respond(embed=user_updated(riot_account.username), ephemeral=True)
 
-    @commands.slash_command(name="store", description="Retrieves your VALORANT Store.")
+    @commands.slash_command(name="night-market", description="Check your VALORANT Night Market.")
+    async def night_market(self, ctx: discord.ApplicationContext):
+        if not self.ready:
+            return await ctx.respond(embed=not_ready(), ephemeral=True)
+        riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if riot_account:
+            await ctx.defer()
+        else:
+            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
+        try:
+            auth = riot_authorization.RiotAuth()
+            await auth.authorize(riot_account.username, riot_account.password)
+        except riot_authorization.Exceptions.RiotAuthenticationError:
+            await ctx.respond(embed=authentication_error())
+            print("Authentication error")
+            return
+        except riot_authorization.Exceptions.RiotRatelimitError:
+            await ctx.respond(embed=rate_limit_error())
+            print("Rate limited")
+            return
+        except riot_authorization.Exceptions.RiotMultifactorError:
+            # No multifactor provided check
+            v = EnterMultiFactor()
+            await ctx.respond(embed=multifactor_detected(), view=v)
+            await v.wait()
+            if v.code is None:
+                return
+            try:
+                auth = riot_authorization.RiotAuth()
+                await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+            except riot_authorization.Exceptions.RiotAuthenticationError:
+                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                print("Authentication error")
+                return
+            except riot_authorization.Exceptions.RiotRatelimitError:
+                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                print("Rate limited")
+                return
+            except riot_authorization.Exceptions.RiotMultifactorError:
+                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                print("Multifactor error")
+                return
+            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+        headers = {
+            "Authorization": f"Bearer {auth.access_token}",
+            "User-Agent": riot_account.username,
+            "X-Riot-Entitlements-JWT": auth.entitlements_token,
+            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+        }
+        skins, remaining = await get_store.getNightMarket(headers, auth.user_id, riot_account.region)
+        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+        usrn = riot_account.username if user_settings.show_username else ctx.author.name
+        if remaining > 432000:
+            desc = f"Ends on <t:{int(time.time() + remaining)}:D>"
+        else:
+            desc = f"Ends in <t:{int(time.time()) + remaining}:R>"
+        embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Night Market",
+                                description=desc, color=0xf990db)]
+        currency = await self.get_currency_details(user_settings.currency)
+        wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
+        wishlisted = 0
+        for uuid, org_cost, discounted_p, discounted_cost, is_seen in skins:
+            sk = await self.dbManager.get_skin_by_uuid(uuid)
+            if sk is not False:
+                if sk.uuid in wishlisted_skins:
+                    wishlisted += 1
+                    is_in_wishlist = True
+                else:
+                    is_in_wishlist = False
+                embeds.append(skin_embed(sk, is_in_wishlist, currency, discounted_p, discounted_cost, is_seen))
+        if len(embeds) > 0 and wishlisted > 0:
+            embeds[0].set_footer(text=f"There are skins from your wishlist!",
+                                 icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
+
+        await ctx.respond(embeds=embeds, view=ThumbnailToImageOnly())
+        print("Store fetch successful")
+        return
+
+    @commands.slash_command(name="store", description="Check your VALORANT Store.")
     async def store(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
@@ -423,13 +504,18 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
                    name: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
-        skin = await self.dbManager.get_skin_by_name(name)
+        skin = await self.dbManager.get_skin_by_name_or_uuid(name)
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
         if skin:
             view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
             user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
             currency = await self.get_currency_details(user_settings.currency)
-            await ctx.respond(embed=skin_embed(skin, False, currency), view=view)
+            e = skin_embed(skin, skin.uuid in wishlist, currency)
+            if await self.client.is_dev(ctx.author.id):
+                c = f"`{skin.uuid}`"
+            else:
+                c = None
+            await ctx.respond(c, embed=skin_embed(skin, False, currency), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
 

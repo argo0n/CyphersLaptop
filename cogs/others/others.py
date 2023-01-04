@@ -12,5 +12,4 @@ class Others(Settings, commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         await self.client.wait_until_ready()
-        print(self.client.db)
         self.dbManager = DBManager(self.client.db)
