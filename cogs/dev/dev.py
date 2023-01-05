@@ -626,12 +626,15 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
     @commands.slash_command(name="broadcast", description="Broadcast updates.", guild_ids=[801457328346890241])
     async def broadcast(self, ctx: discord.ApplicationContext,
                         embed_json: discord.Option(str),
+                        content: discord.Option(str) = None,
                         embed_json2: discord.Option(str) = None,
                         embed_json3: discord.Option(str) = None,
                         embed_json4: discord.Option(str) = None,
                         embed_json5: discord.Option(str) = None,
                         me_only: discord.Option(bool) = True):
         embeds = []
+        if content is not None:
+            content = content.replace("\\n", "\n")
         for embed in [embed_json, embed_json2, embed_json3, embed_json4, embed_json5]:
             if embed is None:
                 continue
@@ -661,7 +664,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                         await update(f"`[{index+1}/{len(all_users)}]` Unknown user {user_id}.")
                 else:
                     try:
-                        await user.send(embeds=embeds, view=SelectCurrencyLowLevelView())
+                        await user.send(content=content, embeds=embeds, view=SelectCurrencyLowLevelView())
                         results['success'] = results.get('success', 0) + 1
                         if modular == 1:
                             await update(f"`[{index+1}/{len(all_users)}]` {user} sent")
