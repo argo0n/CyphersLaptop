@@ -21,17 +21,20 @@ async def getNightMarket(headers, user_id, region):
         async with session.get(f"https://pd.{region}.a.pvp.net/store/v2/storefront/{user_id}/", headers=headers) as r:
             data = await r.json()
     #data = json.loads(open("assets/sample_response_with_night.json", "r").read())
-    night_market = data["BonusStore"]
-    night_market_offers = night_market["BonusStoreOffers"]
-    skins = []
-    for item in night_market_offers:
-        uuid: str = item["Offer"]["OfferID"].lower()
-        org_cost: int = item["Offer"]["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
-        discounted_p: int = item["DiscountPercent"]
-        discounted_cost: int = item["DiscountCosts"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
-        is_seen: bool = item["IsSeen"]
-        skins.append((uuid, org_cost, discounted_p, discounted_cost, is_seen))
-    return skins, night_market["BonusStoreRemainingDurationInSeconds"]
+    try:
+        night_market = data["BonusStore"]
+        night_market_offers = night_market["BonusStoreOffers"]
+        skins = []
+        for item in night_market_offers:
+            uuid: str = item["Offer"]["OfferID"].lower()
+            org_cost: int = item["Offer"]["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
+            discounted_p: int = item["DiscountPercent"]
+            discounted_cost: int = item["DiscountCosts"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
+            is_seen: bool = item["IsSeen"]
+            skins.append((uuid, org_cost, discounted_p, discounted_cost, is_seen))
+        return skins, night_market["BonusStoreRemainingDurationInSeconds"]
+    except KeyError: # no night market
+        return None, 0
 
 
 async def getAllSkins():

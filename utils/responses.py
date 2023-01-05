@@ -202,6 +202,9 @@ def skin_embed(
         embed.color = 0xDD2F45
     return embed
 
+def night_market_closed():
+    return discord.Embed(title="The VALORANT Night Market is not open!", description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!", color=3092790).set_footer(text="Based on previous Night Market appearances, the next Night Market might open in appr. February 2023.").set_image(url="https://cdn.discordapp.com/attachments/868454485683470397/1060407886393647155/nightmarket_e.png")
+
 
 # ------- Discord Bot Setup Error Responses -------
 
@@ -212,7 +215,7 @@ def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorizatio
     responses = {
         "no_account": "You do not have a Riot account logged in to Cypher's Laptop.",
         "mfa_enabled": "**You have Multi-factor Authentication (MFA) enabled for your Riot account.**\nFor your convenience, I am unable to provide you your daily Store if MFA is enabled.\nYou can continue using the </store:1045171702612639836> command to check your daily Store.",
-        "authorization_failed": "Cypher's Laptop was unable to login to your Riot account."
+        "authorization_failed": "Cypher's Laptop was unable to login to your Riot account.\nIf you recently changed your Riot account's password, update it in Cypher's Laptop with </update-password:1045212370944929802>."
     }
     embeds = []
     if reason == "authorization_failed":
