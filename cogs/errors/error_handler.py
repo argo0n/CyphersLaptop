@@ -105,8 +105,7 @@ class ErrorHandler(commands.Cog):
                                 f"```"
                 await self.client.error_channel.send(content=f"<@&871740422932824095> Check this out",
                                                      embed=discord.Embed(title="ApplicationCommand Error", color=0xffcccb, description=error_message,
-                                                                         timestamp=discord.utils.utcnow()).set_footer(
-                                                         text=f"From: {ctx.guild.name}", icon_url=ctx.guild.icon.url),
+                                                                         timestamp=discord.utils.utcnow()),
                                                      allowed_mentions=discord.AllowedMentions(roles=True))
 
     @commands.Cog.listener()
