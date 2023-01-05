@@ -525,9 +525,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
     @commands.slash_command(name="update_skins_database",
                             description="Manually update the internal VALORANT gun skins database.", guild_ids=[801457328346890241])
     @discord.default_permissions(administrator=True)
-    async def update_skins_database(self, ctx: discord.ApplicationContext,
-                                    multifactor_code: discord.Option(str, "Your Riot multifactor code",
-                                                                     required=False) = None):
+    async def update_skins_database(self, ctx: discord.ApplicationContext):
         riot_account = await self.dbManager.get_user_by_user_id(0)
         if riot_account:
             await ctx.defer(ephemeral=True)
@@ -536,60 +534,8 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             e.description = "In the database, add a Riot account with the user ID 0 to use this command. This " \
                             "account will be used to fetch data from the Riot API without using your own account. "
             return await ctx.respond(embed=e, ephemeral=True)
-        try:
-            auth = riot_authorization.RiotAuth()
-            await auth.authorize(riot_account.username, riot_account.password, multifactor_code=multifactor_code)
-        except riot_authorization.Exceptions.RiotAuthenticationError:
-            await ctx.respond(embed=authentication_error())
-            print("Authentication error")
-            return
-        except riot_authorization.Exceptions.RiotRatelimitError:
-            await ctx.respond(embed=rate_limit_error())
-            print("Rate limited")
-            return
-        except riot_authorization.Exceptions.RiotMultifactorError:
-            # No multifactor provided check
-            if multifactor_code is None:
-                await ctx.respond(embed=multifactor_detected())
-                print("Multifactor detected")
-                return
-            await ctx.respond(embed=multifactor_error())
-            print("Multifactor authentication error")
-            return
-        headers = {
-            "Authorization": f"Bearer {auth.access_token}",
-            "User-Agent": riot_account.username,
-            "X-Riot-Entitlements-JWT": auth.entitlements_token,
-            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
-        }
-        raw_offers = await get_store.getRawOffers(headers, riot_account.region)
-        # print(raw_offers)
-        all_skins = await get_store.getAllSkins()
-        skins = []
-        for s in all_skins:
-            i = GunSkin()
-            i.contentTierUUID = s["contentTierUuid"]
-            if i.contentTierUUID is None:
-                continue
-            skin = s["levels"]
-            for b in skin:
-                i.displayName = b["displayName"]
-                i.uuid = b["uuid"].lower()
-                i.displayIcon = b["displayIcon"]
-                for offer in raw_offers:
-                    if offer["OfferID"].lower() == b["uuid"].lower():
-                        i.cost = offer["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
-                        break
-                skins.append(i)
-                break
-        for i in skins:
-            await self.client.db.execute("INSERT INTO skins(uuid, displayname, cost, displayicon, contenttieruuid) "
-                                         "VALUES ($1, $2, $3, $4, $5) ON CONFLICT(uuid) DO UPDATE SET displayName = "
-                                         "$2, cost = $3, displayIcon = $4, contenttieruuid = $5", i.uuid,
-                                         i.displayName, i.cost, i.displayIcon, i.contentTierUUID)
+        await self.update_skin_db()
         await ctx.respond(embed=updated_weapon_database())
-        await self.client.update_service_status("Skin Database Update", round(time.time()), None)
 
     @commands.slash_command(name="help", description="See all of Cypher's Laptop commands.")
     async def help(self, ctx: discord.ApplicationContext):
