@@ -217,13 +217,13 @@ class StoreReminder(commands.Cog):
                         actual_embed.set_footer(text=message + " • " + actual_embed.footer.text)
                 if reminder.show_immediately is not True: # show a button in the message
                     try:
-                        m = await user.send(embed=notif_embed, view=ViewStoreFromReminder(self.dbManager))
+                        m = await user.send(embed=notif_embed, view=ViewStoreFromReminder(self.dbManager, self))
                         await m.edit(embed=actual_embed)
                     except discord.Forbidden:
                         reminder.enabled = False
                         await reminder.update(self.client)
                     except Exception as e:
-                        pass
+                        print(e)
                 else: # show the skins immediately
                     try:
                         m = await user.send(embed=notif_embed)
