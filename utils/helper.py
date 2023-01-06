@@ -1,5 +1,6 @@
 import asyncio
 import io
+import json
 import os
 import random
 from io import BytesIO
@@ -166,3 +167,10 @@ def get_region_code(region: str):
         return "eu"
     elif region == "Korea":
         return "ko"
+
+
+def get_tier_data():
+    with open("assets/contenttiers.json", "r") as f:
+        c = json.loads(f.read())
+        f.close()
+    return c

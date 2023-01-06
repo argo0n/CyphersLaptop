@@ -6,39 +6,7 @@ from discord.ext import commands
 
 from cogs.maincommands.database import DBManager
 from utils.responses import *
-
-tier_uuids = [
-        {
-            "uuid": "12683d76-48d7-84a3-4e09-6985794f0445",
-            "name": "Select",
-            "color": 0x5CA3E3,
-            "emoji": "<:SE:1045730725200154754>"
-        },
-        {
-            "uuid": "0cebb8be-46d7-c12a-d306-e9907bfc5a25",
-            "name": "Deluxe",
-            "color": 0x14C8AB,
-            "emoji": "<:DE:1045730727259537459>"
-        },
-        {
-            "uuid": "60bca009-4182-7998-dee7-b8a2558dc369",
-            "name": "Premium",
-            "color": 0xCF4F88,
-            "emoji": "<:PE:1045730729671266395>"
-        },
-        {
-            "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
-            "name": "Exclusive",
-            "color": 0xFF9054,
-            "emoji": "<:XE:1045730735241302016>"
-        },
-        {
-            "uuid": "411e4a55-4e59-7757-41f0-86a53f101bb5",
-            "name": "Ultra",
-            "color": 0xF9D368,
-            "emoji": "<:UE:1045730732691161188>"
-        }
-    ]
+from utils.helper import *
 
 
 class WishListManager(commands.Cog):
@@ -87,6 +55,7 @@ class WishListManager(commands.Cog):
     async def wishlist(self, ctx):
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
         skins = []
+        tier_uuids = get_tier_data()
         for wish in wishlist:
             sk = await self.dbManager.get_skin_by_uuid(wish)
             em = ""

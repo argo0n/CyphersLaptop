@@ -4,6 +4,7 @@ from typing import Literal, Optional
 import discord
 
 from utils.format import comma_number
+from utils.helper import get_tier_data
 from utils.specialobjects import GunSkin
 
 
@@ -132,38 +133,8 @@ def skin_embed(
         skin: GunSkin, is_in_wishlist: bool, currency: Optional[dict] = None,
         nm_p: Optional[int] = None, nm_c: Optional[int] = None, nm_s: Optional[bool] = True
     ):
-    tier_uuids = [
-        {
-            "uuid": "12683d76-48d7-84a3-4e09-6985794f0445",
-            "name": "Select",
-            "color": 0x5CA3E3,
-            "emoji": "<:SE:1045730725200154754>"
-        },
-        {
-            "uuid": "0cebb8be-46d7-c12a-d306-e9907bfc5a25",
-            "name": "Deluxe",
-            "color": 0x14C8AB,
-            "emoji": "<:DE:1045730727259537459>"
-        },
-        {
-            "uuid": "60bca009-4182-7998-dee7-b8a2558dc369",
-            "name": "Premium",
-            "color": 0xCF4F88,
-            "emoji": "<:PE:1045730729671266395>"
-        },
-        {
-            "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
-            "name": "Exclusive",
-            "color": 0xFF9054,
-            "emoji": "<:XE:1045730735241302016>"
-        },
-        {
-            "uuid": "411e4a55-4e59-7757-41f0-86a53f101bb5",
-            "name": "Ultra",
-            "color": 0xF9D368,
-            "emoji": "<:UE:1045730732691161188>"
-        }
-    ]
+    tier_uuids = get_tier_data()
+    print(tier_uuids)
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
     if nm_p is not None:
         cost = f"<:vp:1045605973005434940> ~~{comma_number(skin.cost)}~~ `-{nm_p}%` "
