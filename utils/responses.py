@@ -142,7 +142,7 @@ def skin_embed(
     else:
         cost = "<:vp:1045605973005434940> "
     cost += f"**{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
-    if currency is not None:
+    if currency is not None and skin.cost is not None:
         vp_per_dollar = currency["vp_per_dollar"]
         if vp_per_dollar == 0:
             with open("assets/currencies.json") as f:
