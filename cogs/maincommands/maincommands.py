@@ -13,7 +13,7 @@ from utils.specialobjects import GunSkin
 from utils.time import humanize_timedelta
 from .database import DBManager
 from utils.responses import *
-from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist
+from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist, ThumbWishViewVariants
 import os
 from dotenv import load_dotenv
 
@@ -60,8 +60,6 @@ class EnterMultiFactor(discord.ui.View):
         return False
 
 
-
-
 class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
     def __init__(self, client):
         self.client: clvt = client
@@ -76,6 +74,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         self.reminder_loop.start()
         self.update_skin_db.start()
         self.client.add_view(ThumbnailAndWishlist(self.dbManager))
+        self.client.add_view(ThumbWishViewVariants(self.dbManager))
         self.client.add_view(ThumbnailToImageOnly())
         self.client.add_view(ViewStoreFromReminder(self.dbManager, self))
 
@@ -428,7 +427,11 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
             "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
-        skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
+        try:
+            skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
+        except KeyError:
+            error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
+            return await ctx.respond(embed=error_embed)
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
@@ -509,7 +512,7 @@ class MainCommands(StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):
         skin = await self.dbManager.get_skin_by_name_or_uuid(name)
         wishlist = await self.dbManager.get_user_wishlist(ctx.author.id)
         if skin:
-            view = ThumbnailAndWishlist(self.dbManager, skin, skin.uuid in wishlist)
+            view = ThumbWishViewVariants(self.dbManager, skin, skin.uuid in wishlist)
             user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
             currency = await self.get_currency_details(user_settings.currency)
             e = skin_embed(skin, skin.uuid in wishlist, currency)
