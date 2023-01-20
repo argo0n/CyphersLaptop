@@ -55,23 +55,33 @@ def user_updated(username):
 def no_logged_in_account():
     return discord.Embed(title="No Logged In Account", description="You do not have a Riot account logged in with Cypher's Laptop.\nUse </login:1045213188209258518> <username> <password> <region> to log in to your Riot account.", color=discord.Color.red())
 
+
 def updated_password(username):
     return discord.Embed(title="Password Updated", description=f"The password for your Riot account **{username}** has been successfully updated.", color=discord.Color.green())
+
 
 def updated_weapon_database():
     return discord.Embed(title="Weapon Skin Database Updated", description="The weapon database has been updated successfully.", color=discord.Color.green())
 
+
 def skin_added_to_wishlist(skin_name):
     return discord.Embed(title="Added to Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been added to your wishlist.", color=discord.Color.green())
+
 
 def skin_already_on_wishlist(skin_name):
     return discord.Embed(title="Already on Wishlist", description=f"<:DVB_False:887589731515392000> **{skin_name}** is already on your wishlist.", color=discord.Color.red())
 
+
 def skin_removed_from_wishlist(skin_name):
     return discord.Embed(title="Removed from Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been removed from your wishlist.", color=discord.Color.green())
 
+
 def skin_not_on_wishlist(skin_name):
     return discord.Embed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.", color=discord.Color.red())
+
+
+def message_delete_success():
+    return discord.Embed(title="Success", description="Message deleted.", color=discord.Color.green())
 
 def store_here(skin_in_wishlist):
     date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
@@ -86,6 +96,7 @@ def store_here(skin_in_wishlist):
             discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="Check out your newly refreshed <:val:1046289333344288808> Store.", color=3092790).set_footer(text=date_asstr)
         )
 
+
 def no_cached_store():
     return discord.Embed(title="Daily Store Error", description="I was unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.", color=discord.Color.red())
 
@@ -98,8 +109,10 @@ def authenticating(with_mfa_code: bool = False):
     else:
         return discord.Embed(title="Authenticating...", description="Authenticating your Riot account...", color=discord.Color.orange())
 
+
 def authentication_success():
     return discord.Embed(title="Success", description="Your Riot account has been successfully authenticated.", color=discord.Color.green())
+
 
 def authentication_error(is_update_or_login_command: bool = False):
     if is_update_or_login_command:
@@ -157,7 +170,6 @@ def skin_embed(
             #comma_number doesn't work with decimals, so we need to split the whole number and decimal and run comma_number on whole number before joining it with decimal
             cost_fr = comma_number(int(cost_rounded)) + "." + str(cost_rounded).split(".")[1]
 
-
         cost += f" *≈ {currency['symbol']} {cost_fr}*"
     if nm_s is True:
         embed = discord.Embed(title=skin.displayName, description=f"{cost}")
@@ -173,6 +185,7 @@ def skin_embed(
         embed.color = 0xDD2F45
     return embed
 
+
 def night_market_closed():
     return discord.Embed(title="The VALORANT Night Market is not open!", description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!", color=3092790).set_footer(text="Based on previous Night Market appearances, the next Night Market might open in appr. February 2023.").set_image(url="https://cdn.discordapp.com/attachments/868454485683470397/1060407886393647155/nightmarket_e.png")
 
@@ -181,6 +194,11 @@ def night_market_closed():
 
 def permission_error():
     return discord.Embed(title="Permission Error (403 Forbidden)", description="Permissions in this server channel do not allow messages to be sent.\nA server admin will need to allow message sending for Cypher's Laptop in channel permission settings.", color=discord.Color.dark_red())
+
+
+def not_me_message():
+    return discord.Embed(title="Error", description="This isn't my message! I only delete messages sent by me.", color=discord.Color.red())
+
 
 def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorization_failed", "rate_limit"]) -> list[discord.Embed]:
     responses = {
