@@ -1,3 +1,4 @@
+import json
 from typing import Any, Union
 
 import asyncpg
@@ -52,7 +53,7 @@ class RiotUser:
 
 class GunSkin:
 
-    __slots__ = ('uuid', 'displayName', 'cost', 'displayIcon', 'contentTierUUID')
+    __slots__ = ('uuid', 'displayName', 'cost', 'displayIcon', 'contentTierUUID', 'chromas', 'levels')
 
     def __init__(self):
         self.uuid: str = None
@@ -60,6 +61,8 @@ class GunSkin:
         self.cost: int = None
         self.displayIcon: str = None
         self.contentTierUUID: str = None
+        self.chromas: dict = None
+        self.levels: dict = None
 
     def from_record(self, record: asyncpg.Record):
         self.uuid = record.get('uuid')
@@ -67,10 +70,12 @@ class GunSkin:
         self.cost = record.get('cost')
         self.displayIcon = record.get('displayicon')
         self.contentTierUUID = record.get('contenttieruuid')
+        self.chromas = json.loads(record.get('chromas'))
+        self.levels = json.loads(record.get('levels'))
         return self
 
     def __repr__(self):
-        return f"<GunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID}>"
+        return f"<GunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID}> chromas={self.chromas} levels={self.levels}"
 
 
 class UserSetting:

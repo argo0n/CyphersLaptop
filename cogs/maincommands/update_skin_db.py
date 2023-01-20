@@ -1,3 +1,5 @@
+import json
+import re
 import time
 
 import aiohttp
@@ -7,6 +9,7 @@ from discord.ext import commands, tasks
 from cogs.maincommands.database import DBManager
 from main import clvt
 from utils import riot_authorization, get_store
+from utils.format import print_exception
 from utils.specialobjects import GunSkin
 
 
@@ -61,13 +64,76 @@ class UpdateSkinDB(commands.Cog):
                             if offer["OfferID"].lower() == b["uuid"].lower():
                                 i.cost = offer["Cost"]["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"]
                                 break
-                        skins.append(i)
                         break
+                    raw_levels = s["levels"]
+                    raw_chromas = s["chromas"]
+                    chromas = []
+                    levels = []
+
+                    def get_level(s):
+                        # Find the substring "Level" and the number following it
+                        match = re.search(r'Level (\d+)', s)
+                        if match:
+                            # Return the number as an integer
+                            return int(match.group(1))
+                        else:
+                            # Return None if no match was found
+                            return None
+
+                    for c in raw_chromas:
+                        chroma_uuid = c['uuid']
+                        name = c['displayName']
+                        level = get_level(name)
+                        chroma_name = name.split('\n')[-1].replace('(', '').replace(')', '')
+                        name_filter = name.split('\n')[0]
+                        displayIcon = c['displayIcon']
+                        videoURL = c['streamedVideo']
+                        chromas.append({
+                                "uuid": chroma_uuid,
+                                "name": name_filter,
+                                "level": level,
+                                "chroma_name": chroma_name,
+                                "displayIcon": displayIcon,
+                                "video": videoURL
+                            })
+                    i.chromas = chromas
+                    if len(raw_levels) < 2:
+                        i.levels = []
+                    else:
+                        for l in raw_levels:
+                            display_name = l["displayName"]
+                            level_item = l["levelItem"]
+                            if level_item:
+                                upg = " - " + level_item.split("::")[-1]
+                            else:
+                                upg = ""
+                            level = get_level(display_name)
+                            if level is None:
+                                if upg is None:
+                                    lvl = "Unknown"
+                                else:
+                                    lvl = upg
+                            else:
+                                lvl = f"Level {level}" + upg
+                            levels.append({
+                                    "uuid": l['uuid'],
+                                    "displayName": l['displayName'],
+                                    "levelName": lvl,
+                                    "video": l['streamedVideo'],
+                                    "displayIcon": l['displayIcon']
+                                })
+                        i.levels = levels
+                    skins.append(i)
+
+
+
+
                 for i in skins:
-                    await self.client.db.execute("INSERT INTO skins(uuid, displayname, cost, displayicon, contenttieruuid) "
-                                                 "VALUES ($1, $2, $3, $4, $5) ON CONFLICT(uuid) DO UPDATE SET displayName = "
-                                                 "$2, cost = $3, displayIcon = $4, contenttieruuid = $5", i.uuid,
-                                                 i.displayName, i.cost, i.displayIcon, i.contentTierUUID)
+                    await self.client.db.execute("INSERT INTO skins(uuid, displayname, cost, displayicon, contenttieruuid, levels, chromas) "
+                                                 "VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(uuid) DO UPDATE SET displayName = "
+                                                 "$2, cost = $3, displayIcon = $4, contenttieruuid = $5, levels = $6, chromas = $7", i.uuid,
+                                                 i.displayName, i.cost, i.displayIcon, i.contentTierUUID, json.dumps(i.levels, indent=2), json.dumps(i.chromas, indent=2))
         except Exception as e:
             error = str(e)
+            print_exception("Ignoring exception while updating skin database, ", error)
         await self.client.update_service_status("Skin Database Update", upd_time, error)

@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 import time
 import inspect
 import asyncio
@@ -92,7 +94,7 @@ class AddToWishListButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         user = interaction.user
         skin_name = interaction.message.embeds[0].title
-        skin = await self.db_manager.get_skin_by_name(skin_name)
+        skin = await self.db_manager.get_skin_by_name_or_uuid(skin_name)
         if skin is False:
             return await interaction.response.send_message(skin_not_found(skin_name), ephemeral=True)
         wishlist = await self.db_manager.get_user_wishlist(interaction.user.id)
@@ -256,7 +258,169 @@ class ThumbnailAndWishlist(discord.ui.View):
         button.emoji = new_emoji
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.data.get('custom_id', None) == "add_to_wishlist_v1":
+            return True
+        if interaction.message.interaction is not None:
+            if interaction.user.id != interaction.message.interaction.user.id:
+                await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
+                return False
+        return True
 
+
+class ViewChromaVariants(discord.ui.Select):
+    def __init__(self, skin):
+        self.skin = skin
+        if self.skin is not None:
+            options = []
+            if len(self.skin.chromas) > 2:
+                for index, chroma in enumerate(self.skin.chromas):
+                    chroma_name = chroma.get('chroma_name')
+                    name = chroma.get('name')
+                    uuid = chroma.get('uuid')
+                    options.append(
+                        discord.SelectOption(label=chroma_name, description=name, value=uuid, default=index==0)
+                    )
+            else:
+                options.append(discord.SelectOption(label="No variants available"))
+            super().__init__(placeholder="Select a chroma", options=options, disabled=len(self.skin.chromas) < 2)
+
+    async def callback(self, interaction: discord.Interaction):
+        self.view.selected_chroma = self.values[0]
+        if self.view.selected_level is not None:
+            bu = self.view.get_item(self.view.selected_level)
+            bu.style = discord.ButtonStyle.grey
+        self.view.selected_level = None
+        for op in self.options:
+            if op.value == self.view.selected_chroma:
+                op.default = True
+            else:
+                op.default = False
+        self.view.format_content_and_embed()
+        await interaction.response.edit_message(content=self.view.content, embed=self.view.embed, view=self.view)
+
+
+class ViewLevelVariants(discord.ui.Button):
+    def __init__(self, level):
+        super().__init__(label=level.get('levelName') or "Base Level", custom_id=level.get('uuid'), style=discord.ButtonStyle.grey)
+
+    async def callback(self, interaction: discord.Interaction):
+        if self.style == discord.ButtonStyle.blurple:
+            self.view.selected_level = None
+        else:
+            self.view.selected_level = self.custom_id
+        for i in self.view.children:
+            if isinstance(i, discord.ui.Button):
+                if i.custom_id == self.view.selected_level:
+                    i.style = discord.ButtonStyle.blurple
+                else:
+                    i.style = discord.ButtonStyle.grey
+        self.view.format_content_and_embed()
+        await interaction.response.edit_message(content=self.view.content, embed=self.view.embed, view=self.view)
+
+
+class ViewVariants(discord.ui.View):
+    def __init__(self, db_manager: DBManager, skin: Optional[GunSkin] = None):
+        self.db_manager = db_manager
+        self.skin = skin
+        self.selected_chroma = skin.chromas[0].get('uuid')
+        self.selected_level = None
+        self.content = None
+        self.embed = None
+        super().__init__(timeout=None, disable_on_timeout=True)
+
+        self.add_item(ViewChromaVariants(self.skin))
+        for level in skin.levels:
+            self.add_item(ViewLevelVariants(level))
+
+    def format_content_and_embed(self):
+        if self.selected_level is not None:
+            for level in self.skin.levels:
+                if level.get('uuid') == self.selected_level:
+                    title = self.skin.displayName
+                    if level.get('levelName') is not None:
+                        title += " " + level.get('levelName')
+                    if (video_url := level.get('video')) is not None:
+                        params = urlencode({"url": video_url, "text": title})
+                        self.content = f"[{title}](https://cypherslaptop.nogra.xyz/video?{params})"
+                        self.embed = None
+                    elif (display_icon := level.get('displayIcon')) is not None:
+                        self.embed = discord.Embed(title=title, color=3092790).set_image(url=display_icon).set_footer(text="If no image appears, select the level to reload it.")
+                        self.content = None
+                    else:
+                        self.embed = discord.Embed(title=title, color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
+                        self.content = None
+                    break
+        else:
+            if len(self.skin.chromas) < 2:
+                chroma = self.skin.chromas[0]
+                title = chroma.get('name')
+                if chroma.get('chroma_name') and chroma.get('chroma_name') != title:
+                    title += " - " + chroma.get('chroma_name')
+                if self.skin.chromas[0].get('displayIcon') is None:
+                    disp = self.skin.displayIcon
+                else:
+                    disp = self.skin.chromas[0].get('displayIcon')
+                self.embed = discord.Embed(title=title, color=3092790).set_image(url=disp)
+                self.content = None
+                return
+            for chroma in self.skin.chromas:
+                if chroma.get('uuid') == self.selected_chroma:
+                    title = chroma.get('name')
+                    if chroma.get('chroma_name') and chroma.get('chroma_name') != title:
+                        title += " - " + chroma.get('chroma_name')
+                    if (video_url := chroma.get('video')) is not None:
+                        params = urlencode({"url": video_url, "text": title})
+                        self.content = f"[{title}](https://cypherslaptop.nogra.xyz/video?{params})"
+                        self.embed = None
+                    elif (display_icon := chroma.get('displayIcon')) is not None:
+                        self.embed = discord.Embed(title=title, color=3092790).set_image(url=display_icon).set_footer(text="If no image appears, select the chroma to reload it.")
+                        self.content = None
+                    else:
+                        self.embed = discord.Embed(title=title, color=3092790).set_image(
+                            url="https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
+                        self.content = None
+                    break
+
+
+class ThumbWishViewVariants(discord.ui.View):
+    def __init__(self, db_manager: DBManager, skin: Optional[GunSkin] = None, is_in_wishlist: Optional[bool] = None):
+        self.db_manager = db_manager
+        self.skin = skin
+        self.is_in_wishlist = is_in_wishlist
+        super().__init__(timeout=None)
+        self.add_item(AddToWishListButton(db_manager=self.db_manager, skin=self.skin, is_in_wishlist=self.is_in_wishlist))
+
+    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v2")
+    async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
+        new_embeds = []
+        for embed in interaction.message.embeds:
+            if button.label == "Expand images":
+                new_label = "Collapse images"
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+                if embed.thumbnail:
+                    embed.set_image(url=embed.thumbnail.url)
+                    embed.set_thumbnail(url=discord.Embed.Empty)
+            elif button.label == "Collapse images":
+                new_label = "Expand images"
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+                if embed.image:
+                    embed.set_thumbnail(url=embed.image.url)
+                    embed.set_image(url=discord.Embed.Empty)
+            new_embeds.append(embed)
+        button.label = new_label
+        button.emoji = new_emoji
+        await interaction.response.edit_message(embeds=new_embeds, view=self)
+
+    @discord.ui.button(label="View Variants", style=discord.ButtonStyle.grey, custom_id="view_variants_v1")
+    async def view_variants(self, button: discord.ui.Button, interaction: discord.Interaction):
+        skin_name = interaction.message.embeds[0].title
+        skin = await self.db_manager.get_skin_by_name_or_uuid(skin_name)
+        if skin is False:
+            return await interaction.response.send_message(skin_not_found(skin_name), ephemeral=True)
+        variant_view = ViewVariants(self.db_manager, skin)
+        variant_view.format_content_and_embed()
+        await interaction.response.send_message(variant_view.content, embed=variant_view.embed, view=variant_view)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         if interaction.data.get('custom_id', None) == "add_to_wishlist_v1":
