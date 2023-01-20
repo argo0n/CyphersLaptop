@@ -114,5 +114,8 @@ class DBManager:
     async def fetch_reminders(self) -> list[ReminderConfig]:
         reminders = await self.pool_pg.fetch("SELECT * FROM store_reminder")
         return [ReminderConfig(rem) for rem in reminders]
-        
+
+    async def insert_onetimestore(self, user_id, skin1, skin2, skin3, skin4):
+        return await self.pool_pg.execute("INSERT INTO onetimestores (user_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES ($1, $2, $3, $4, $5)", user_id, skin1, skin2, skin3, skin4)
+
 
