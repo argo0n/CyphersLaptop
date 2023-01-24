@@ -95,7 +95,7 @@ class clvt(commands.Bot):
                 await self.db.execute("""
                 CREATE TABLE IF NOT EXISTS valorant_login(user_id bigint PRIMARY KEY NOT NULL, username text NOT NULL, password bytea NOT NULL, region text NOT NULL);
                 CREATE TABLE IF NOT EXISTS devmode(user_id bigint, enabled boolean);
-                CREATE TABLE IF NOT EXISTS skins(uuid text PRIMARY KEY NOT NULL, displayName text not null, displayIcon text, cost int, contentTierUUID text);
+                CREATE TABLE IF NOT EXISTS skins(uuid text PRIMARY KEY NOT NULL, displayName text not null, displayIcon text, cost int, contentTierUUID text, levels jsonb, chromas jsonb);
                 CREATE TABLE IF NOT EXISTS prefixes(guild_id bigint PRIMARY KEY NOT NULL, prefix text NOT NULL);
                 CREATE TABLE IF NOT EXISTS wishlist(user_id bigint NOT NULL, skin_uuid text NOT NULL);
                 CREATE TABLE IF NOT EXISTS store_reminder(user_id bigint not null, enabled bool default false not null, show_immediately bool default false not null, picture_mode bool default false not null);
