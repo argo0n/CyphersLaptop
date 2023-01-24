@@ -4,7 +4,7 @@ from discord.ext import commands
 from utils.buttons import SingleURLButton
 from .settings import Settings
 from ..maincommands.database import DBManager
-from utils.responses import not_me_message, message_delete_success, help_command
+from utils.responses import not_me_message, message_delete_success, help_command, dm_only_command
 
 
 class Others(Settings, commands.Cog):
@@ -26,6 +26,10 @@ class Others(Settings, commands.Cog):
     async def delete_own_message(self, ctx: discord.ApplicationContext, message: discord.Message):
         if message.author.id != self.client.user.id:
             return await ctx.respond(embed=not_me_message(), ephemeral=True)
+        # check if channel is a DM channel
+        if ctx.guild is not None:
+            return await ctx.respond(embed=dm_only_command(), ephemeral=True)
+
         await message.delete()
         await ctx.respond(embed=message_delete_success(), ephemeral=True)
 

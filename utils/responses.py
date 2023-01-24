@@ -8,6 +8,15 @@ from utils.helper import get_tier_data
 from utils.specialobjects import GunSkin
 
 
+class ErrorEmbed(discord.Embed):
+    def __init__(self, description: str, title: str = "Error", color: discord.Color = discord.Color.red(), *args, **kwargs):
+        super().__init__(title=title, description=description, color=color, *args, **kwargs)
+
+class SuccessEmbed(discord.Embed):
+    def __init__(self, description: str, title: str = "Success", color: discord.Color = discord.Color.green(), *args, **kwargs):
+        super().__init__(title=title, description=description, color=color, *args, **kwargs)
+
+
 def updating_password(username, step: Literal[1, 2]):
     if step == 1:
         desc = "Verifying your credentials with Riot..."
@@ -21,7 +30,7 @@ def updating_password(username, step: Literal[1, 2]):
 # ------- Argument Error Responses -------
 
 def invalid_channel():
-    return discord.Embed(title="Invalid Channel", description="To ensure privacy, please use this command in direct messages only.", color=discord.Color.red())
+    return ErrorEmbed(title="Invalid Channel", description="To ensure privacy, please use this command in direct messages only.")
 
 
 # ------- Database Responses -------
@@ -31,57 +40,60 @@ def user_already_exist(username, is_author: bool):
         description = f"You've already logged into to **{username}** on Cypher's Laptop."
     else:
         description = f"**{username}** is already logged into via another Discord account.\nIf you want to use your Riot account on this Discord account, </logout:1045213188209258519> of **{username}** on your other Discord account."
-    return discord.Embed(title="User Already Exists", description=description, color=discord.Color.red())
+    return ErrorEmbed(title="User Already Exists", description=description)
 
 
 def already_logged_in(username):
-    return discord.Embed(title="Already Logged In", description=f"You are already logged in with the Riot account **{username}**.\nYou can only add one account at a time.", color=discord.Color.red())
+    return ErrorEmbed(title="Already Logged In", description=f"You are already logged in with the Riot account **{username}**.\nYou can only add one account at a time.")
 
 
 def user_logged_in(username):
-    embed = discord.Embed(title="Successfully logged in", description=f"Your Riot account, **{username}** has been successfully verified and logged in.\n\nIf you received a login MFA code, you may ignore it.", color=discord.Color.green()).set_footer(text="Your password is encrypted when stored. Not even the developer can see your password.")
+    embed = SuccessEmbed(
+        title="Successfully logged in", description=f"Your Riot account, **{username}** has been successfully verified and logged in.\n\nIf you received a login MFA code, you may ignore it."
+    ).set_footer(text="Your password is encrypted when stored. Even the developer cannot see your password.")
     embed.add_field(name="What next?", value="• Use </store:1045171702612639836> to check your store at any time.\n• Never miss out on your store by enabling and customizing your </reminders:1046432239724015697>.\n• Check out </settings:1055460993225990174> to customize your Store, such as displaying weapon skin estimate prices!\n\nI will inform you if your <:wlGUN:1046281227142975538> **favorite skin** is in the shop! Just add your favorite skins to your </wishlist add:1046095784292130946>.")
     return embed
 
 
 def user_logged_out(username):
-    return discord.Embed(title="Successfully logged out", description=f"Your Riot account, **{username}** has been successfully logged out.", color=discord.Color.green())
+    return SuccessEmbed(title="Successfully logged out", description=f"Your Riot account, **{username}** has been successfully logged out.")
 
 
 def user_updated(username):
-    return discord.Embed(title="User Credentials Updated", description=f"Your Riot account, **{username}**'s password has been successfully verified and updated.", color=discord.Color.green())
+    return SuccessEmbed(title="User Credentials Updated", description=f"Your Riot account, **{username}**'s password has been successfully verified and updated.")
 
 
 def no_logged_in_account():
-    return discord.Embed(title="No Logged In Account", description="You do not have a Riot account logged in with Cypher's Laptop.\nUse </login:1045213188209258518> <username> <password> <region> to log in to your Riot account.", color=discord.Color.red())
+    return ErrorEmbed(title="No Logged In Account", description="You do not have a Riot account logged in with Cypher's Laptop.\nUse </login:1045213188209258518> to log in to your Riot account.")
 
 
 def updated_password(username):
-    return discord.Embed(title="Password Updated", description=f"The password for your Riot account **{username}** has been successfully updated.", color=discord.Color.green())
+    return SuccessEmbed(title="Password Updated", description=f"The password for your Riot account **{username}** has been successfully updated.")
 
 
 def updated_weapon_database():
-    return discord.Embed(title="Weapon Skin Database Updated", description="The weapon database has been updated successfully.", color=discord.Color.green())
+    return SuccessEmbed(description="The weapon database has been updated successfully.")
 
 
 def skin_added_to_wishlist(skin_name):
-    return discord.Embed(title="Added to Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been added to your wishlist.", color=discord.Color.green())
+    return SuccessEmbed(title="Added to Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been added to your wishlist.")
 
 
 def skin_already_on_wishlist(skin_name):
-    return discord.Embed(title="Already on Wishlist", description=f"<:DVB_False:887589731515392000> **{skin_name}** is already on your wishlist.", color=discord.Color.red())
+    return ErrorEmbed(title="Already on Wishlist", description=f"<:DVB_False:887589731515392000> **{skin_name}** is already on your wishlist.")
 
 
 def skin_removed_from_wishlist(skin_name):
-    return discord.Embed(title="Removed from Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been removed from your wishlist.", color=discord.Color.green())
+    return SuccessEmbed(title="Removed from Wishlist", description=f"<:DVB_True:887589686808309791> **{skin_name}** has been removed from your wishlist.")
 
 
 def skin_not_on_wishlist(skin_name):
-    return discord.Embed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.", color=discord.Color.red())
+    return ErrorEmbed(title="Skin Not on Wishlist", description=f"**{skin_name}** is not on your wishlist.")
 
 
 def message_delete_success():
-    return discord.Embed(title="Success", description="Message deleted.", color=discord.Color.green())
+    return SuccessEmbed(title="Success", description="Message deleted.")
+
 
 def store_here(skin_in_wishlist):
     date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
@@ -98,7 +110,7 @@ def store_here(skin_in_wishlist):
 
 
 def no_cached_store():
-    return discord.Embed(title="Daily Store Error", description="I was unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.", color=discord.Color.red())
+    return ErrorEmbed(title="Daily Store Error", description="I was unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.")
 
 
 # ------- Riot Authentication Errors/Responses -------
@@ -111,35 +123,35 @@ def authenticating(with_mfa_code: bool = False):
 
 
 def authentication_success():
-    return discord.Embed(title="Success", description="Your Riot account has been successfully authenticated.", color=discord.Color.green())
+    return SuccessEmbed(description="Your Riot account has been successfully authenticated.")
 
 
 def authentication_error(is_update_or_login_command: bool = False):
     if is_update_or_login_command:
         remark = ""
     else:
-        remark = "\n\nIf you have updated your password, please use </update-password:1045212370944929802> <password>."
-    return discord.Embed(title="Authentication Error", description=f"Make sure your **username** and **password** are correct and try again.\n\nEnsure you are using the username and password for signing in to your **Riot Account**, not your VALORANT display name or Riot ID.{remark}", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
+        remark = "\n\nIf you have updated your password, please use </update-password:1045212370944929802>."
+    return ErrorEmbed(title="Authentication Error", description=f"Make sure your **username** and **password** are correct and try again.\n\nEnsure you are using the username and password for signing in to your **Riot Account**, not your VALORANT display name or Riot ID.{remark}").set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045221258670903348/brave_YlSOdWyDbs.png")
 
 
 def rate_limit_error():
-    return discord.Embed(title="Rate Limited", description="Your request has been rate limited by Riot.\nYou might have tried to log in too many times, please try again in a few minutes.", color=discord.Color.red())
+    return ErrorEmbed(title="Rate Limited", description="Your request has been rate limited by Riot.\nYou might have tried to log in too many times, please try again in a few minutes.")
 
 
 def multifactor_detected():
-    return discord.Embed(title="Enter Multi Factor Authentication (MFA) Code", description="Your account has MFA enabled.\nA code has been sent to your email, check your email for the code and enter it below.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red()).set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
+    return ErrorEmbed(title="Additional Verification Required", description="Your account has Multi Factor Authentication (MFA) enabled.\nA 6-digit code has been sent to your email, check your email and enter the MFA code below.").set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
 
 
 def multifactor_error():
-    return discord.Embed(title="Multifactor Failed", description="The MFA code you entered was incorrect.\nPlease rerun the command to re-enter the code or request for a new one.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
+    return ErrorEmbed(title="Multifactor Failed", description="The MFA code you entered was incorrect.\nPlease rerun the command to re-enter the code or request for a new one.\n\nNote that you will need enter a new multifactor code every time you check your store.", color=discord.Color.red())
 
 
 def skin_not_found(skin_name):
-    return discord.Embed(title="Skin Not Found", description=f"I could not find a skin with the name **{skin_name}**.", color=discord.Color.red())
+    return ErrorEmbed(title="Skin Not Found", description=f"I could not find a skin with the name **{skin_name}**.", color=discord.Color.red())
 
 
 def not_ready():
-    return discord.Embed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
+    return ErrorEmbed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
 
 
 def skin_embed(
@@ -197,7 +209,11 @@ def permission_error():
 
 
 def not_me_message():
-    return discord.Embed(title="Error", description="This isn't my message! I only delete messages sent by me.", color=discord.Color.red())
+    return ErrorEmbed(description="This isn't my message! I only delete messages sent by me.")
+
+
+def dm_only_command():
+    return ErrorEmbed(description="This command can only be used in Direct Messages.")
 
 
 def reminder_disabled(reason: Literal["no_account", "mfa_enabled", "authorization_failed", "rate_limit"]) -> list[discord.Embed]:
