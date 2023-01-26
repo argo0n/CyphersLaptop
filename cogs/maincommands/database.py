@@ -135,6 +135,8 @@ class DBManager:
         else:
             result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1 AND user_id = $2", datetime.date.today(), disc_userid)
             if result is None:
+                if headers is None or user_id is None or region is None:
+                    return None
                 skin_uuids, remaining = await get_store.getStore(headers, user_id, region)
                 time_expire = int(time.time()) + remaining
                 await self.pool_pg.execute("INSERT INTO cached_stores (user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid, time_expire) VALUES ($1, $2, $3, $4, $5, $6, $7)", disc_userid, datetime.date.today(), skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3], time_expire)

@@ -275,56 +275,59 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
-        if riot_account:
-            await ctx.defer()
-        else:
-            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
-        try:
-            auth = riot_authorization.RiotAuth()
-            await auth.authorize(riot_account.username, riot_account.password)
-        except riot_authorization.Exceptions.RiotAuthenticationError:
-            await ctx.respond(embed=authentication_error())
-            print("Authentication error")
-            return
-        except riot_authorization.Exceptions.RiotRatelimitError:
-            await ctx.respond(embed=rate_limit_error())
-            print("Rate limited")
-            return
-        except riot_authorization.Exceptions.RiotMultifactorError:
-            # No multifactor provided check
-            v = EnterMultiFactor()
-            await ctx.respond(embed=multifactor_detected(), view=v)
-            await v.wait()
-            if v.code is None:
-                return
+        # attempt to fetch store from cache first, if no record exists we'll run it again
+        skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, None, None, None)
+        if skin_uuids is None:
+            if riot_account:
+                await ctx.defer()
+            else:
+                return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
             try:
                 auth = riot_authorization.RiotAuth()
-                await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+                await auth.authorize(riot_account.username, riot_account.password)
             except riot_authorization.Exceptions.RiotAuthenticationError:
-                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                await ctx.respond(embed=authentication_error())
                 print("Authentication error")
                 return
             except riot_authorization.Exceptions.RiotRatelimitError:
-                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                await ctx.respond(embed=rate_limit_error())
                 print("Rate limited")
                 return
             except riot_authorization.Exceptions.RiotMultifactorError:
-                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
-                print("Multifactor error")
-                return
-            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
-        headers = {
-            "Authorization": f"Bearer {auth.access_token}",
-            "User-Agent": riot_account.username,
-            "X-Riot-Entitlements-JWT": auth.entitlements_token,
-            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
-        }
-        try:
-            skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, headers, auth.user_id, riot_account.region)
-        except KeyError:
-            error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
-            return await ctx.respond(embed=error_embed)
+                # No multifactor provided check
+                v = EnterMultiFactor()
+                await ctx.respond(embed=multifactor_detected(), view=v)
+                await v.wait()
+                if v.code is None:
+                    return
+                try:
+                    auth = riot_authorization.RiotAuth()
+                    await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+                except riot_authorization.Exceptions.RiotAuthenticationError:
+                    await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                    print("Authentication error")
+                    return
+                except riot_authorization.Exceptions.RiotRatelimitError:
+                    await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                    print("Rate limited")
+                    return
+                except riot_authorization.Exceptions.RiotMultifactorError:
+                    await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                    print("Multifactor error")
+                    return
+                await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+            headers = {
+                "Authorization": f"Bearer {auth.access_token}",
+                "User-Agent": riot_account.username,
+                "X-Riot-Entitlements-JWT": auth.entitlements_token,
+                "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+                "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+            }
+            try:
+                skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, headers, auth.user_id, riot_account.region)
+            except KeyError:
+                error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
+                return await ctx.respond(embed=error_embed)
         onetimestore = await self.client.db.fetchrow("SELECT skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid FROM onetimestores WHERE user_id = $1", ctx.author.id)
         if onetimestore:
             skin_uuids = [onetimestore.get('skin1_uuid'), onetimestore.get('skin2_uuid'), onetimestore.get('skin3_uuid'), onetimestore.get('skin4_uuid')]
