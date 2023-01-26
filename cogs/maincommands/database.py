@@ -1,6 +1,12 @@
+import datetime
+import time
+from typing import Optional
+
 import asyncpg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
+
+from utils import get_store
 from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting
 import os
 
@@ -117,5 +123,28 @@ class DBManager:
 
     async def insert_onetimestore(self, user_id, skin1, skin2, skin3, skin4):
         return await self.pool_pg.execute("INSERT INTO onetimestores (user_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES ($1, $2, $3, $4, $5)", user_id, skin1, skin2, skin3, skin4)
+
+    async def get_store(self, disc_userid, headers, user_id, region, date: Optional[datetime.date] = None):
+        if date is not None:
+            result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1", date)
+            if result is None:
+                return None
+            else:
+                skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
+                remaining = result.get('time_expire') - int(time.time())
+        else:
+            result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1", datetime.date.today())
+            if result is None:
+                skin_uuids, remaining = await get_store.getStore(headers, user_id, region)
+                time_expire = int(time.time()) + remaining
+                await self.pool_pg.execute("INSERT INTO cached_stores (user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid, time_expire) VALUES ($1, $2, $3, $4, $5, $6, $7)", disc_userid, datetime.date.today(), skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3], time_expire)
+            else:
+                skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
+                remaining = result.get('time_expire') - int(time.time())
+        return skin_uuids, remaining
+
+
+
+
 
 

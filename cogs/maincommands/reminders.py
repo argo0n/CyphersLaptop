@@ -31,7 +31,6 @@ class ViewStoreFromDaily(discord.ui.Button):
         wishlist = await self.DBManager.get_user_wishlist(interaction.user.id)
         if riot_account:
             base_embed = discord.Embed(title=f"{riot_account.username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=3092790)
-
         else:
             base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr)
         embeds = [base_embed]
@@ -206,7 +205,7 @@ class StoreReminder(commands.Cog):
                     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
                     "X-Riot-ClientVersion": "pbe-shipping-55-604424"
                 }
-                skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
+                skin_uuids, remaining = await self.dbManager.get_store(user.id, headers, auth.user_id, riot_account.region)
                 await self.client.db.execute("INSERT INTO cached_stores(user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES($1, $2, $3, $4, $5, $6)", user.id, todays_date, skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3])
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)
                 skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)

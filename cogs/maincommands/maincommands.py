@@ -321,7 +321,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
         try:
-            skin_uuids, remaining = await get_store.getStore(headers, auth.user_id, riot_account.region)
+            skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, headers, auth.user_id, riot_account.region)
         except KeyError:
             error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
             return await ctx.respond(embed=error_embed)
