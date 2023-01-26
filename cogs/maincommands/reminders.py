@@ -29,12 +29,16 @@ class ViewStoreFromDaily(discord.ui.Button):
         skins = [skins.get('skin1_uuid'), skins.get('skin2_uuid'), skins.get('skin3_uuid'), skins.get('skin4_uuid')]
         wishlisted = 0
         wishlist = await self.DBManager.get_user_wishlist(interaction.user.id)
+        user_settings = await self.DBManager.fetch_user_settings(interaction.user.id)
         if riot_account:
-            base_embed = discord.Embed(title=f"{riot_account.username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=3092790)
+            if user_settings.show_username:
+                username = riot_account.username
+            else:
+                username = interaction.user.name
+            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=3092790)
         else:
             base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr)
         embeds = [base_embed]
-        user_settings = await self.DBManager.fetch_user_settings(interaction.user.id)
         currency = await self.cog.get_currency_details(user_settings.currency)
         for skin in skins:
             sk: GunSkin = await self.DBManager.get_skin_by_uuid(skin)
@@ -206,7 +210,6 @@ class StoreReminder(commands.Cog):
                     "X-Riot-ClientVersion": "pbe-shipping-55-604424"
                 }
                 skin_uuids, remaining = await self.dbManager.get_store(user.id, headers, auth.user_id, riot_account.region)
-                await self.client.db.execute("INSERT INTO cached_stores(user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES($1, $2, $3, $4, $5, $6)", user.id, todays_date, skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3])
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)
                 skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)
                 notif_embed, actual_embed = store_here(skin_in_wishlist)
