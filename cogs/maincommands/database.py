@@ -126,19 +126,26 @@ class DBManager:
 
     async def get_store(self, disc_userid, headers, user_id, region, date: Optional[datetime.date] = None):
         if date is not None:
+            print("date specified, finding store for specific date")
             result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1", date)
             if result is None:
+                print("no cached store found for specific date")
                 return None
             else:
+                print("cached store found for specific date")
                 skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
                 remaining = result.get('time_expire') - int(time.time())
         else:
+            print("no date provided, fetching store for today")
             result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1", datetime.date.today())
             if result is None:
+                print("no store found for today, fetching new store")
                 skin_uuids, remaining = await get_store.getStore(headers, user_id, region)
                 time_expire = int(time.time()) + remaining
+                print("caching new store")
                 await self.pool_pg.execute("INSERT INTO cached_stores (user_id, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid, time_expire) VALUES ($1, $2, $3, $4, $5, $6, $7)", disc_userid, datetime.date.today(), skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3], time_expire)
             else:
+                print("store found, processing")
                 skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
                 remaining = result.get('time_expire') - int(time.time())
         return skin_uuids, remaining
