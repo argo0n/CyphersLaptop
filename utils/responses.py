@@ -185,7 +185,7 @@ def skin_embed(
         cost += f" *≈ {currency['symbol']} {cost_fr}*"
     if nm_s is True:
         embed = discord.Embed(title=skin.displayName, description=f"{cost}")
-        embed.set_thumbnail(url=skin.displayIcon)
+        embed.set_thumbnail(url=skin.displayIcon or "https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
     else:
         embed = discord.Embed().set_image(url="https://cdn.discordapp.com/attachments/805604591630286918/1045968296488480818/CyphersLaptopWideEdited.png")
     if tier is not None:
