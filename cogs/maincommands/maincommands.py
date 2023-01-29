@@ -241,7 +241,11 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         }
         skins, remaining = await get_store.getNightMarket(headers, auth.user_id, riot_account.region)
         if skins is None:
-            return await ctx.respond(embed=night_market_closed(), view=SingleURLButton("https://twitter.com/PlayVALORANT", "@PlayVALORANT on Twitter", emoji=discord.PartialEmoji.from_str("<:twitter:1060408863360286783>")))
+            if time.time() < 1676878310:
+                embed = night_market_closed(True)
+            else:
+                embed = night_market_closed(False)
+            return await ctx.respond(embed=embed, view=SingleURLButton("https://twitter.com/PlayVALORANT", "@PlayVALORANT on Twitter", emoji=discord.PartialEmoji.from_str("<:twitter:1060408863360286783>")))
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         if remaining > 432000:

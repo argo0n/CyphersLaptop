@@ -198,8 +198,19 @@ def skin_embed(
     return embed
 
 
-def night_market_closed():
-    return discord.Embed(title="The VALORANT Night Market is not open!", description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!", color=3092790).set_footer(text="Based on previous Night Market appearances, the next Night Market might open in appr. February 2023.").set_image(url="https://cdn.discordapp.com/attachments/868454485683470397/1060407886393647155/nightmarket_e.png")
+def night_market_closed(before_nm = False):
+    if before_nm:
+        return discord.Embed(title="VALORANT's Night Market will return on <t:1676509200:F>,",
+                             description="until <t:1677459540:D>.", color=0xffe8b6).set_footer(
+            text="From @PlayVALORANT on Twitter").set_image(
+            url="https://cdn.discordapp.com/attachments/805604591630286918/1069156590323765278/Fnkjmg8XgAAbT6G.png")
+    else:
+        return discord.Embed(title="VALORANT's Night Market is not open!",
+                             description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!",
+                             color=3092790).set_footer(
+            text="Based on previous Night Market appearances, the next Night Market might open in appr. February 2023.").set_image(
+            url="https://cdn.discordapp.com/attachments/868454485683470397/1060407886393647155/nightmarket_e.png")
+
 
 
 # ------- Discord Bot Setup Error Responses -------
