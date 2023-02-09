@@ -3,30 +3,35 @@
         "uuid": "12683d76-48d7-84a3-4e09-6985794f0445",
         "name": "Select",
         "color": 6071267,
-        "emoji": "<:SE:1060947004278190191>"
+        "emoji": "<:SE:1060947004278190191>",
+        "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087920181369/nm_se.png"
     },
     {
         "uuid": "0cebb8be-46d7-c12a-d306-e9907bfc5a25",
         "name": "Deluxe",
         "color": 1362091,
-        "emoji": "<:DE:1060947013400805517>"
+        "emoji": "<:DE:1060947013400805517>",
+        "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087542689832/nm_de.png"
     },
     {
         "uuid": "60bca009-4182-7998-dee7-b8a2558dc369",
         "name": "Premium",
         "color": 13586312,
-        "emoji": "<:PE:1060947006178197634>"
+        "emoji": "<:PE:1060947006178197634>",
+        "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087752400926/nm_pe.png"
     },
     {
         "uuid": "e046854e-406c-37f4-6607-19a9ba8426fc",
         "name": "Exclusive",
         "color": 16748628,
-        "emoji": "<:XE:1060947009835630712>"
+        "emoji": "<:XE:1060947009835630712>",
+        "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130088327020564/nm_xe.png"
     },
     {
         "uuid": "411e4a55-4e59-7757-41f0-86a53f101bb5",
         "name": "Ultra",
         "color": 16372584,
-        "emoji": "<:UE:1060947000922755082>"
+        "emoji": "<:UE:1060947000922755082>",
+        "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130088138281041/nm_ue.png"
     }
 ]
