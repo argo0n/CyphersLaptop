@@ -187,7 +187,7 @@ def skin_embed(
         embed = discord.Embed(title=skin.displayName, description=f"{cost}")
         embed.set_thumbnail(url=skin.displayIcon or "https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
     else:
-        embed = discord.Embed().set_image(url="https://cdn.discordapp.com/attachments/805604591630286918/1045968296488480818/CyphersLaptopWideEdited.png")
+        embed = discord.Embed().set_image(url=tier["nm_image"])
     if tier is not None:
         embed.color = tier["color"]
         if nm_s is True:
