@@ -4,6 +4,7 @@
         "name": "Select",
         "color": 6071267,
         "emoji": "<:SE:1060947004278190191>",
+        "nm_emoji": "<:nm_SE:1073808637669146644>",
         "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087920181369/nm_se.png"
     },
     {
@@ -11,6 +12,7 @@
         "name": "Deluxe",
         "color": 1362091,
         "emoji": "<:DE:1060947013400805517>",
+        "nm_emoji": "<:nm_DE:1073809850569597079>",
         "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087542689832/nm_de.png"
     },
     {
@@ -18,6 +20,7 @@
         "name": "Premium",
         "color": 13586312,
         "emoji": "<:PE:1060947006178197634>",
+        "nm_emoji": "<:nm_PE:1073809853610463305>",
         "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130087752400926/nm_pe.png"
     },
     {
@@ -25,6 +28,7 @@
         "name": "Exclusive",
         "color": 16748628,
         "emoji": "<:XE:1060947009835630712>",
+        "nm_emoji": "<:nm_XE:1073809858920464426>",
         "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130088327020564/nm_xe.png"
     },
     {
@@ -32,6 +36,7 @@
         "name": "Ultra",
         "color": 16372584,
         "emoji": "<:UE:1060947000922755082>",
+        "nm_emoji": "<:nm_UE:1073809856089301074>",
         "nm_image": "https://cdn.discordapp.com/attachments/1046947484150284390/1073130088138281041/nm_ue.png"
     }
 ]
