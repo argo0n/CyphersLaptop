@@ -14,7 +14,8 @@ from utils.time import humanize_timedelta
 from .account_management import AccountManagement
 from .database import DBManager
 from utils.responses import *
-from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist, ThumbWishViewVariants
+from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist, ThumbWishViewVariants, \
+    NightMarketView
 import os
 from dotenv import load_dotenv
 
@@ -257,20 +258,37 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
+        nm_skins = []
+        shown_embeds = []
         for uuid, org_cost, discounted_p, discounted_cost, is_seen in skins:
-            sk = await self.dbManager.get_skin_by_uuid(uuid)
+            sk = await self.dbManager.get_nightmarket_skin(uuid)
             if sk is not False:
                 if sk.uuid in wishlisted_skins:
                     wishlisted += 1
                     is_in_wishlist = True
                 else:
                     is_in_wishlist = False
+                print(sk.cost)
+                sk.discounted_p = discounted_p
+                sk.seen = is_seen
+                sk.discounted_cost = discounted_cost
+                sk.seen = is_seen
                 embeds.append(skin_embed(sk, is_in_wishlist, currency, discounted_p, discounted_cost, is_seen))
+                print(sk.cost, discounted_cost)
+                shown_embeds.append(skin_embed(sk, is_in_wishlist, currency, discounted_p, discounted_cost, True))
+                nm_skins.append(sk)
         if len(embeds) > 0 and wishlisted > 0:
             embeds[0].set_footer(text=f"There are skins from your wishlist!",
                                  icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
 
-        await ctx.respond(embeds=embeds, view=ThumbnailToImageOnly())
+        await ctx.respond(embeds=embeds, view=NightMarketView(
+            nm_skins[0], shown_embeds[0],
+            nm_skins[1], shown_embeds[1],
+            nm_skins[2], shown_embeds[2],
+            nm_skins[3], shown_embeds[3],
+            nm_skins[4], shown_embeds[4],
+            nm_skins[5], shown_embeds[5]
+        ))
         print("Store fetch successful")
         return
 

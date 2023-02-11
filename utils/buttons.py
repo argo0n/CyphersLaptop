@@ -15,7 +15,7 @@ from discord.ext import commands
 from utils.context import CLVTcontext
 from utils.helper import BaseEmbed
 from utils.responses import *
-from utils.specialobjects import GunSkin
+from utils.specialobjects import GunSkin, NightMarketGunSkin
 
 
 class SingleURLButton(discord.ui.View):
@@ -195,6 +195,73 @@ class ViewAuthor(BaseView):
             return False
         return True
 
+class NightMarketSkinReveal(discord.ui.Button):
+    def __init__(self, skin: NightMarketGunSkin, seen: bool, index: int, respond_embed: discord.Embed):
+        tier_uuids = get_tier_data()
+        tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
+        self.tier_details = tier
+        self.skin = skin
+        self.seen = seen
+        self.index = index
+        self.respond_embed = respond_embed
+        super().__init__(style=discord.ButtonStyle.blurple if not seen else discord.ButtonStyle.grey, label=str(index), emoji=tier["nm_emoji"], disabled=seen)
+
+    async def callback(self, interaction: discord.Interaction):
+        embeds = interaction.message.embeds
+        embeds[self.index+1] = self.respond_embed
+        self.disabled = True
+        self.style = discord.ButtonStyle.grey
+        await interaction.response.edit_message(embeds=embeds, view=self.view)
+
+
+
+
+class NightMarketView(discord.ui.View):
+    def __init__(self,
+                 skin1: NightMarketGunSkin, skin1_embed: discord.Embed,
+                 skin2: NightMarketGunSkin, skin2_embed: discord.Embed,
+                 skin3: NightMarketGunSkin, skin3_embed: discord.Embed,
+                 skin4: NightMarketGunSkin, skin4_embed: discord.Embed,
+                 skin5: NightMarketGunSkin, skin5_embed: discord.Embed,
+                 skin6: NightMarketGunSkin, skin6_embed: discord.Embed
+                 ):
+        super().__init__(timeout=3600, disable_on_timeout=True)
+
+        self.add_item(NightMarketSkinReveal(skin1, skin1.seen, 0, skin1_embed))
+        self.add_item(NightMarketSkinReveal(skin2, skin2.seen, 1, skin2_embed))
+        self.add_item(NightMarketSkinReveal(skin3, skin3.seen, 2, skin3_embed))
+        self.add_item(NightMarketSkinReveal(skin4, skin4.seen, 3, skin4_embed))
+        self.add_item(NightMarketSkinReveal(skin5, skin5.seen, 4, skin5_embed))
+        self.add_item(NightMarketSkinReveal(skin6, skin6.seen, 5, skin6_embed))
+
+
+    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v1", row=2)
+    async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
+        new_embeds = []
+        for embed in interaction.message.embeds:
+            if button.label == "Expand images":
+                new_label = "Collapse images"
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+                if embed.thumbnail:
+                    embed.set_image(url=embed.thumbnail.url)
+                    embed.set_thumbnail(url=discord.Embed.Empty)
+            elif button.label == "Collapse images":
+                new_label = "Expand images"
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+                if embed.image:
+                    embed.set_thumbnail(url=embed.image.url)
+                    embed.set_image(url=discord.Embed.Empty)
+            new_embeds.append(embed)
+        button.label = new_label
+        button.emoji = new_emoji
+        await interaction.response.edit_message(embeds=new_embeds, view=self)
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.message.interaction is not None:
+            if interaction.user.id != interaction.message.interaction.user.id:
+                await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
+                return False
+        return True
 
 class ThumbnailToImageOnly(discord.ui.View):
     def __init__(self):

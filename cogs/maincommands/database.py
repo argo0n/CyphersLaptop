@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 from utils import get_store
-from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting
+from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting, NightMarketGunSkin
 import os
 
 load_dotenv()
@@ -70,6 +70,13 @@ class DBManager:
             sk = GunSkin().from_record(skin)
             skins.append(sk)
         return skins
+
+    async def get_nightmarket_skin(self, uuid):
+        gun_skin = await self.pool_pg.fetchrow("SELECT * FROM skins WHERE LOWER(displayname) = $1 OR LOWER(uuid) = $1", uuid.lower())
+        if gun_skin is None:
+            return False
+        discounted_gun_skin = NightMarketGunSkin().from_record(gun_skin)
+        return discounted_gun_skin
 
     async def get_skin_by_name_or_uuid(self, skin_name) -> GunSkin:
         skin = await self.pool_pg.fetchrow("SELECT * FROM skins WHERE LOWER(displayname) = $1 OR LOWER(uuid) = $1", skin_name.lower())

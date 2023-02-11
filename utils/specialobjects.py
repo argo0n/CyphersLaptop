@@ -78,6 +78,18 @@ class GunSkin:
         return f"<GunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID}> chromas={self.chromas} levels={self.levels}"
 
 
+class NightMarketGunSkin(GunSkin):
+    __slots__ = ('seen', 'discounted_p', 'discounted_cost')
+
+    def __init__(self):
+        super().__init__()
+        self.seen: bool = False
+        self.discounted_p: float = 0
+        self.discounted_cost: int = 0
+
+    def __repr__(self):
+        return f"<NightMarketGunSkin uuid={self.uuid} displayName={self.displayName} cost={self.cost} displayIcon={self.displayIcon} contentTierUUID={self.contentTierUUID} seen={self.seen} discounted_p={self.discounted_p} discounted_cost={self.discounted_cost}> chromas={self.chromas} levels={self.levels}"
+
 class UserSetting:
     __slots__ = ('user_id', 'currency', 'show_username')
 

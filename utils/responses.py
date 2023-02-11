@@ -162,12 +162,11 @@ def skin_embed(
     print(tier_uuids)
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
     if nm_p is not None:
-        cost = f"<:vp:1045605973005434940> ~~{comma_number(skin.cost)}~~ `-{nm_p}%` "
-        skin.cost = nm_c
+        cost = f"<:vp:1045605973005434940> ~~{comma_number(skin.cost)}~~ `-{nm_p}%` **{comma_number(nm_c)}**"
     else:
-        cost = "<:vp:1045605973005434940> "
-    cost += f"**{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
-    if currency is not None and skin.cost is not None:
+        cost = f"<:vp:1045605973005434940> **{comma_number(skin.cost)}**" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+    final_price = nm_c or skin.cost
+    if currency is not None and final_price is not None:
         vp_per_dollar = currency["vp_per_dollar"]
         if vp_per_dollar == 0:
             with open("assets/currencies.json") as f:
@@ -175,11 +174,12 @@ def skin_embed(
             exch = currency["exch"]
             vp_per_dollar = currencies["data"]["USD"]["vp_per_dollar"] * exch
         if currency['decimal_digits'] == 0:
-            cost_rounded = int(skin.cost * vp_per_dollar)
+            cost_rounded = int(final_price * vp_per_dollar)
             cost_fr = comma_number(cost_rounded)
         else:
-            cost_rounded = round(skin.cost * vp_per_dollar, currency['decimal_digits'])
-            #comma_number doesn't work with decimals, so we need to split the whole number and decimal and run comma_number on whole number before joining it with decimal
+            cost_rounded = round(final_price * vp_per_dollar, currency['decimal_digits'])
+            # comma_number doesn't work with decimals, so we need to split the whole number
+            # and decimal and run comma_number on whole number before joining it with decimal
             cost_fr = comma_number(int(cost_rounded)) + "." + str(cost_rounded).split(".")[1]
 
         cost += f" *≈ {currency['symbol']} {cost_fr}*"
