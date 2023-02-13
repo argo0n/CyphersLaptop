@@ -240,6 +240,9 @@ class NightMarketView(discord.ui.View):
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
+            if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
+                new_embeds.append(embed)
+                continue
             if button.label == "Expand images":
                 new_label = "Collapse images"
                 new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
@@ -271,6 +274,9 @@ class ThumbnailToImageOnly(discord.ui.View):
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
+            if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
+                new_embeds.append(embed)
+                continue
             if button.label == "Expand images":
                 new_label = "Collapse images"
                 new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
@@ -308,6 +314,9 @@ class ThumbnailAndWishlist(discord.ui.View):
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
+            if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
+                new_embeds.append(embed)
+                continue
             if button.label == "Expand images":
                 new_label = "Collapse images"
                 new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
@@ -462,6 +471,9 @@ class ThumbWishViewVariants(discord.ui.View):
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
+            if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
+                new_embeds.append(embed)
+                continue
             if button.label == "Expand images":
                 new_label = "Collapse images"
                 new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
