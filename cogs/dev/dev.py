@@ -29,6 +29,7 @@ from abc import ABC
 from main import clvt
 from utils import checks
 from utils.helper import DynamicUpdater, range_char
+from utils.specialobjects import UserSetting
 from .status import Status
 from .botutils import BotUtils
 from .autostatus import AutoStatus
@@ -42,6 +43,28 @@ from utils.converters import MemberUserConverter, TrueFalse
 
 
 ## CHANGELOG VIEWS
+
+class RemindNightMarket(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Click here to be reminded", style=discord.ButtonStyle.blurple, custom_id="remind_night_market")
+    async def remind_night_market(self, button: discord.ui.Button, interaction: discord.Interaction):
+        button.disabled = True
+        button.style = discord.ButtonStyle.grey
+        usr_se_db = await interaction.client.db.fetchrow("SELECT * FROM user_settings WHERE user_id = $1", interaction.user.id)
+        if usr_se_db is None:
+            await interaction.client.db.execute("INSERT INTO user_settings(user_id) VALUES ($1)", interaction.user.id)
+            usr_se_db = await interaction.client.db.fetchrow("SELECT * FROM user_settings WHERE user_id = $1", interaction.user.id)
+        usr_se = UserSetting(usr_se_db)
+        usr_se.nm_reminder = True
+        await usr_se.update(interaction.client)
+        await interaction.response.send_message("You will be reminded when the Night Market opens!", ephemeral=True)
+        embeds = interaction.message.embeds
+        embeds.pop(-1)
+        await interaction.followup.edit_message(view=self, message_id=interaction.message.id, embeds=embeds)
+
+
 
 
 class SelectCurrencyLowLevelView(discord.ui.View):
@@ -246,6 +269,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
     async def on_ready(self):
         if not self.view_added:
             self.client.add_view(SelectCurrencyLowLevelView())
+            self.client.add_view(RemindNightMarket())
             self.view_added = True
 
     @checks.dev()
@@ -664,7 +688,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                         await update(f"`[{index+1}/{len(all_users)}]` Unknown user {user_id}.")
                 else:
                     try:
-                        await user.send(content=content, embeds=embeds)
+                        await user.send(content=content, embeds=embeds, view=RemindNightMarket())
                         results['success'] = results.get('success', 0) + 1
                         if modular == 1:
                             await update(f"`[{index+1}/{len(all_users)}]` {user} sent")
