@@ -282,6 +282,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                                  icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
 
         await ctx.respond(embeds=embeds, view=NightMarketView(
+            ctx.author,
             nm_skins[0], shown_embeds[0],
             nm_skins[1], shown_embeds[1],
             nm_skins[2], shown_embeds[2],

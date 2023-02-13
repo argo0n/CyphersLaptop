@@ -204,7 +204,7 @@ class NightMarketSkinReveal(discord.ui.Button):
         self.seen = seen
         self.index = index
         self.respond_embed = respond_embed
-        super().__init__(style=discord.ButtonStyle.blurple if not seen else discord.ButtonStyle.grey, label=str(index), emoji=tier["nm_emoji"], disabled=seen)
+        super().__init__(style=discord.ButtonStyle.blurple if not seen else discord.ButtonStyle.grey, label=str(index+1), emoji=tier["nm_emoji"], disabled=seen)
 
     async def callback(self, interaction: discord.Interaction):
         embeds = interaction.message.embeds
@@ -218,6 +218,7 @@ class NightMarketSkinReveal(discord.ui.Button):
 
 class NightMarketView(discord.ui.View):
     def __init__(self,
+                 user: discord.User,
                  skin1: NightMarketGunSkin, skin1_embed: discord.Embed,
                  skin2: NightMarketGunSkin, skin2_embed: discord.Embed,
                  skin3: NightMarketGunSkin, skin3_embed: discord.Embed,
@@ -226,7 +227,7 @@ class NightMarketView(discord.ui.View):
                  skin6: NightMarketGunSkin, skin6_embed: discord.Embed
                  ):
         super().__init__(timeout=3600, disable_on_timeout=True)
-
+        self.user = user
         self.add_item(NightMarketSkinReveal(skin1, skin1.seen, 0, skin1_embed))
         self.add_item(NightMarketSkinReveal(skin2, skin2.seen, 1, skin2_embed))
         self.add_item(NightMarketSkinReveal(skin3, skin3.seen, 2, skin3_embed))
@@ -257,10 +258,9 @@ class NightMarketView(discord.ui.View):
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.message.interaction is not None:
-            if interaction.user.id != interaction.message.interaction.user.id:
-                await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
-                return False
+        if self.user.id != interaction.user.id:
+            await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
+            return False
         return True
 
 class ThumbnailToImageOnly(discord.ui.View):
