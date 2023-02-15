@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 
+from main import clvt
 from utils.buttons import SingleURLButton
 from .settings import Settings
 from ..maincommands.database import DBManager
@@ -9,7 +10,7 @@ from utils.responses import not_me_message, message_delete_success, help_command
 
 class Others(Settings, commands.Cog):
     def __init__(self, client):
-        self.client = client
+        self.client: clvt = client
         self.dbManager: DBManager = None
 
     @commands.Cog.listener()
@@ -70,3 +71,15 @@ class Others(Settings, commands.Cog):
 
         await ctx.respond(embed=embed, view=SingleURLButton(text="Click here to invite Cypher's Laptop",
                                                             link=f"https://discord.com/api/oauth2/authorize?client_id={self.client.user.id}&permissions=137439266880&scope=bot%20applications.commands"))
+
+    @commands.slash_command(name="suggest", description="Suggestions don't always get approved, but keep a look out!")
+    async def suggest(self, ctx: discord.ApplicationContext, suggestion: discord.Option(str, min_length=1, max_length=512)):
+        await ctx.defer()
+        channel = await self.client.fetch_channel(1075290139703660594)
+        suggestion_id = await self.client.db.fetchval("INSERT INTO suggestions(user_id, content) VALUES($1, $2) RETURNING suggestion_id", ctx.author.id, suggestion)
+        embed = discord.Embed(title=f"Suggestion #{suggestion_id}", description=suggestion, color=discord.Color.blue())
+        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+        channel_suggestion_msg = await channel.send(embed=embed)
+        await self.client.db.execute("UPDATE suggestions SET server_message_id = $1 WHERE suggestion_id = $2", channel_suggestion_msg.id, suggestion_id)
+        await ctx.respond(embed=discord.Embed(title="Your suggestion has been submitted.", description=suggestion, color=self.client.embed_color).set_footer(text="If we need more information, you'll be contacted via DMs.").set_thumbnail(url=ctx.me.display_avatar.url))
+
