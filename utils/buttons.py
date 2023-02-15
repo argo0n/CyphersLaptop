@@ -509,3 +509,38 @@ class ThumbWishViewVariants(discord.ui.View):
                 await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
                 return False
         return True
+
+class SuggestionDeveloperMessagePrompt(discord.ui.Modal):
+    def __init__(self):
+        super().__init__(timeout=None, title="Reply to Suggestion")
+
+        self.add_item(discord.ui.InputText(label="Response", style=discord.InputTextStyle.long, min_length=1, max_length=512, required=True))
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message("Placeholder message", ephemeral=True)
+
+
+
+
+
+class SuggestionDeveloperView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(label="Message", style=discord.ButtonStyle.blurple, emoji="📨", custom_id="suggest_message")
+    async def message_suggestor(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_modal(SuggestionDeveloperMessagePrompt())
+
+    @discord.ui.button(label="View Conversation", style=discord.ButtonStyle.blurple, emoji="📃", custom_id="suggest_view_convo_history")
+    async def view_suggest_conversation(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_message("Placeholder message", ephemeral=True)
+
+    @discord.ui.button(label="Accept", style=discord.ButtonStyle.green, emoji="<:CL_True:1075296198598066238>", custom_id="suggest_approve", row=2)
+    async def accept_suggestion(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_message("Placeholder message", ephemeral=True)
+
+    @discord.ui.button(label="Deny", style=discord.ButtonStyle.red, emoji="<:CL_False:1075296226620223499>", custom_id="suggest_deny", row=2)
+    async def deny_suggestion(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_message("Placeholder message", ephemeral=True)
+
+
