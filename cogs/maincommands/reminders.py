@@ -34,9 +34,9 @@ class ViewStoreFromDaily(discord.ui.Button):
                 username = riot_account.username
             else:
                 username = interaction.user.name
-            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=3092790)
+            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
         else:
-            base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr)
+            base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
         embeds = [base_embed]
         currency = await self.cog.get_currency_details(user_settings.currency)
         for skin in skins:

@@ -358,7 +358,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
-                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)]
+                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=self.client.embed_color)]
         currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
