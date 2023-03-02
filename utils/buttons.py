@@ -8,14 +8,27 @@ import contextlib
 from discord import ui
 from typing import Optional, Any, Union, Dict, Type, Iterable
 from functools import partial
+import time
 
 from cogs.maincommands.database import DBManager
 from utils.context import CLVTcontext
-from discord.ext import commands
+from discord.ext import commands, pages
 from utils.context import CLVTcontext
 from utils.helper import BaseEmbed
 from utils.responses import *
 from utils.specialobjects import GunSkin, NightMarketGunSkin
+
+def bundle_responses_into_embeds(responses: list[tuple], base_embed: Optional[discord.Embed] = None):
+    embeds = []
+    for response_chunk in discord.utils.as_chunks(responses, 5):
+        embed = base_embed or discord.Embed()
+        embed.color = 3092790
+        for response in response_chunk:
+            embed.add_field(name=response[0], value=response[1], inline=False)
+        embeds.append(embed)
+    return embeds
+
+
 
 
 class SingleURLButton(discord.ui.View):
@@ -511,13 +524,32 @@ class ThumbWishViewVariants(discord.ui.View):
         return True
 
 class SuggestionDeveloperMessagePrompt(discord.ui.Modal):
-    def __init__(self):
-        super().__init__(timeout=None, title="Reply to Suggestion")
+    def __init__(self, suggestion_id: int, suggested_user: discord.User):
+        self.suggestion_id = suggestion_id
+        self.suggested_user = suggested_user
+        super().__init__(timeout=None, title=f"Reply to {suggested_user.name}'s Suggestion")
 
         self.add_item(discord.ui.InputText(label="Response", style=discord.InputTextStyle.long, min_length=1, max_length=512, required=True))
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_message("Placeholder message", ephemeral=True)
+        suggestion = await interaction.client.db.fetchrow("SELECT * FROM suggestions WHERE suggestion_id = $1", self.suggestion_id)
+        if suggestion is None:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"A suggestion with ID `{self.suggestion_id} was not found.`"), ephemeral=True)
+        try:
+            suggested_user = await interaction.client.fetch_user(suggestion.get('user_id'))
+        except discord.NotFound:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"I could not find the user of the suggestion `{self.suggestion_id}`.\n`{suggestion.get('user_id')}"), ephemeral=True)
+        response = self.children[0].value
+        cut_text = suggestion.get('content') if len(suggestion.get('content')) < 100 else suggestion.get('content')[:100] + "..."
+        embed = discord.Embed(title="A developer has responded to your suggestion.", description=cut_text, color=3092790)
+        embed.add_field(name=f"{interaction.user.name}#{interaction.user.discriminator}", value=response)
+        try:
+            await suggested_user.send(embed=embed)
+        except discord.Forbidden:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"I could not DM {suggested_user.name}#{suggested_user.discriminator}."))
+        else:
+            await interaction.client.db.execute("INSERT INTO suggestion_responses(suggestion_id, author_id, response, response_time) VALUES($1, $2, $3, $4)", self.suggestion_id, interaction.user.id, response, round(time.time()))
+            await interaction.response.send_message("Your repsonse was sent successfullly.", embed=embed, ephemeral=True)
 
 
 
@@ -529,11 +561,42 @@ class SuggestionDeveloperView(discord.ui.View):
 
     @discord.ui.button(label="Message", style=discord.ButtonStyle.blurple, emoji="📨", custom_id="suggest_message")
     async def message_suggestor(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(SuggestionDeveloperMessagePrompt())
+        suggestion = await interaction.client.db.fetchrow("SELECT * FROM suggestions WHERE server_message_id = $1", interaction.message.id)
+        if suggestion is None:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"A suggestion with ID `{suggestion.get('suggestion_id')}` was not found."), ephemeral=True)
+        try:
+            suggested_user = await interaction.client.fetch_user(suggestion.get('user_id'))
+        except discord.NotFound:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"I could not find the user of the suggestion `{suggestion.get('suggestion_id')}`.\n`{suggestion.get('user_id')}`"), ephemeral=True)
+        await interaction.response.send_modal(SuggestionDeveloperMessagePrompt(suggestion.get('suggestion_id'), suggested_user))
 
     @discord.ui.button(label="View Conversation", style=discord.ButtonStyle.blurple, emoji="📃", custom_id="suggest_view_convo_history")
     async def view_suggest_conversation(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_message("Placeholder message", ephemeral=True)
+        suggestion = await interaction.client.db.fetchrow("SELECT * FROM suggestions WHERE server_message_id = $1", interaction.message.id)
+        if suggestion is None:
+            return await interaction.response.send_message(embed=ErrorEmbed(f"A suggestion for this message was not found."), ephemeral=True)
+        suggestion_responses = await interaction.client.db.fetch("SELECT * FROM suggestion_responses WHERE suggestion_id = $1", suggestion.get('suggestion_id'))
+        responses = []
+        for response in suggestion_responses:
+            try:
+                author = await interaction.client.get_or_fetch_user(response.get('author_id'))
+            except discord.NotFound:
+                author = f"Unknown User - {response.get('author_id')}"
+            else:
+                author = f"{author.name}#{author.discriminator}"
+            responses.append((f"**{author}** - <t:{response.get('response_time')}>", response.get('response')))
+        embed_title = f"Suggestion #{suggestion.get('suggestion_id')}"
+        embed_description = suggestion.get('response')
+        pagina = pages.Paginator(
+            pages=bundle_responses_into_embeds(responses, discord.Embed(title=embed_title, description=embed_description)),
+            show_menu=False,
+            author_check=True,
+            disable_on_timeout=True,
+        )
+        await pagina.respond(interaction, ephemeral=True)
+
+
+
 
     @discord.ui.button(label="Accept", style=discord.ButtonStyle.green, emoji="<:CL_True:1075296198598066238>", custom_id="suggest_approve", row=2)
     async def accept_suggestion(self, button: discord.ui.Button, interaction: discord.Interaction):
