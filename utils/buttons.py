@@ -249,27 +249,24 @@ class NightMarketView(discord.ui.View):
         self.add_item(NightMarketSkinReveal(skin6, skin6.seen, 5, skin6_embed))
 
 
-    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v1", row=2)
+    @discord.ui.button(style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1080746652815593572>"), custom_id="expand_v1", row=2)
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
             if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
                 new_embeds.append(embed)
                 continue
-            if button.label == "Expand images":
-                new_label = "Collapse images"
-                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+            if 'expand' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1080748791390543923>")
                 if embed.thumbnail:
                     embed.set_image(url=embed.thumbnail.url)
                     embed.set_thumbnail(url=discord.Embed.Empty)
-            elif button.label == "Collapse images":
-                new_label = "Expand images"
-                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+            elif 'shrink' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1080746652815593572>")
                 if embed.image:
                     embed.set_thumbnail(url=embed.image.url)
                     embed.set_image(url=discord.Embed.Empty)
             new_embeds.append(embed)
-        button.label = new_label
         button.emoji = new_emoji
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
@@ -283,27 +280,24 @@ class ThumbnailToImageOnly(discord.ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v1")
+    @discord.ui.button(style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1080746652815593572>"), custom_id="expand_v1")
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
             if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
                 new_embeds.append(embed)
                 continue
-            if button.label == "Expand images":
-                new_label = "Collapse images"
-                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+            if 'expand' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1080748791390543923>")
                 if embed.thumbnail:
                     embed.set_image(url=embed.thumbnail.url)
                     embed.set_thumbnail(url=discord.Embed.Empty)
-            elif button.label == "Collapse images":
-                new_label = "Expand images"
-                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+            elif 'shrink' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1080746652815593572>")
                 if embed.image:
                     embed.set_thumbnail(url=embed.image.url)
                     embed.set_image(url=discord.Embed.Empty)
             new_embeds.append(embed)
-        button.label = new_label
         button.emoji = new_emoji
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
@@ -323,27 +317,24 @@ class ThumbnailAndWishlist(discord.ui.View):
         super().__init__(timeout=None)
         self.add_item(AddToWishListButton(db_manager=self.db_manager, skin=self.skin, is_in_wishlist=self.is_in_wishlist))
 
-    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v2")
+    @discord.ui.button(style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1080746652815593572>"), custom_id="expand_v2")
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
             if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
                 new_embeds.append(embed)
                 continue
-            if button.label == "Expand images":
-                new_label = "Collapse images"
-                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+            if 'expand' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1080748791390543923>")
                 if embed.thumbnail:
                     embed.set_image(url=embed.thumbnail.url)
                     embed.set_thumbnail(url=discord.Embed.Empty)
-            elif button.label == "Collapse images":
-                new_label = "Expand images"
-                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+            elif 'shrink' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1080746652815593572>")
                 if embed.image:
                     embed.set_thumbnail(url=embed.image.url)
                     embed.set_image(url=discord.Embed.Empty)
             new_embeds.append(embed)
-        button.label = new_label
         button.emoji = new_emoji
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
@@ -480,27 +471,24 @@ class ThumbWishViewVariants(discord.ui.View):
         super().__init__(timeout=None)
         self.add_item(AddToWishListButton(db_manager=self.db_manager, skin=self.skin, is_in_wishlist=self.is_in_wishlist))
 
-    @discord.ui.button(label="Expand images", style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1046006467091759125>"), custom_id="expand_v2")
+    @discord.ui.button(style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1080746652815593572>"), custom_id="expand_v2")
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
         new_embeds = []
         for embed in interaction.message.embeds:
             if (type(embed.image.url) == str and "nm" in embed.image.url.lower()) or (type(embed.thumbnail.url) == str and "nm" in embed.thumbnail.url.lower()):
                 new_embeds.append(embed)
                 continue
-            if button.label == "Expand images":
-                new_label = "Collapse images"
-                new_emoji = discord.PartialEmoji.from_str("<:shrink:1046006464713609237>")
+            if 'expand' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:shrink:1080748791390543923>")
                 if embed.thumbnail:
                     embed.set_image(url=embed.thumbnail.url)
                     embed.set_thumbnail(url=discord.Embed.Empty)
-            elif button.label == "Collapse images":
-                new_label = "Expand images"
-                new_emoji = discord.PartialEmoji.from_str("<:expand:1046006467091759125>")
+            elif 'shrink' in button.emoji.name:
+                new_emoji = discord.PartialEmoji.from_str("<:expand:1080746652815593572>")
                 if embed.image:
                     embed.set_thumbnail(url=embed.image.url)
                     embed.set_image(url=discord.Embed.Empty)
             new_embeds.append(embed)
-        button.label = new_label
         button.emoji = new_emoji
         await interaction.response.edit_message(embeds=new_embeds, view=self)
 
