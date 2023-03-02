@@ -18,6 +18,22 @@ from utils.helper import BaseEmbed
 from utils.responses import *
 from utils.specialobjects import GunSkin, NightMarketGunSkin
 
+
+accept_reasons = {
+    "Approved (Future update)": "Your suggestion has been approved and will appear in a future update!\nThank you for making suggestions for Cypher's Laptop, and we can't wait to hear more of your ideas :)",
+    "Approved (Now)": "Your suggestion has been approved and is appearing in this new update!\nCheck the changelogs, and thank you for making suggestions for Cypher's Laptop!"
+}
+
+reject_reasons = {
+    "Spam": "Your suggestion has been denied as it has been identified as spam. Avoid making nonsensical suggestions or access to Cypher's Laptop may be restricted.",
+    "Duplicate": "Your suggestion has been denied as a similar suggestion has already been made by another user. You are still welcome to make new suggestions!",
+    "Off-Topic": "Your suggestion has been denied as it does not fit with the purpose of Cypher's Laptop. Make sure your suggestions are relevant to Cypher's Laptop's main functionalities!",
+    "Inappropriate": "Your suggestion has been denied as it contains inappropriate or offensive content. Such material is not acceptable and will NOT be implemented in Cypher's Laptop.",
+    "Technical Limitations": "Your suggestion has been denied as it is not possible to implement due to technical limitations. We do appreciate your ideas though, keep them coming!",
+    "Already Planned": "Your suggestion has been denied as it is already in our development roadmap. Look out for it in a future update!",
+    "Not Enough Information": "Your suggestion has been denied as it lacks necessary details for us to fully understand and implement it. Provide as much information as possible to help us evaluate your suggestion."
+
+}
 def bundle_responses_into_embeds(responses: list[tuple], base_embed: Optional[discord.Embed] = None):
     embeds = []
     for response_chunk in discord.utils.as_chunks(responses, 5):
