@@ -36,6 +36,10 @@ reject_reasons = {
 }
 def bundle_responses_into_embeds(responses: list[tuple], base_embed: Optional[discord.Embed] = None):
     embeds = []
+    if len(responses) == 0:
+        embed = base_embed or discord.Embed()
+        embed.description = "No responses so far."
+        embeds.append(embed)
     for response_chunk in discord.utils.as_chunks(responses, 5):
         embed = base_embed or discord.Embed()
         embed.color = 2829617
@@ -219,6 +223,7 @@ class ViewAuthor(BaseView):
             return False
         return True
 
+
 class NightMarketSkinReveal(discord.ui.Button):
     def __init__(self, skin: NightMarketGunSkin, seen: bool, index: int, respond_embed: discord.Embed):
         tier_uuids = get_tier_data()
@@ -236,8 +241,6 @@ class NightMarketSkinReveal(discord.ui.Button):
         self.disabled = True
         self.style = discord.ButtonStyle.grey
         await interaction.response.edit_message(embeds=embeds, view=self.view)
-
-
 
 
 class NightMarketView(discord.ui.View):
@@ -258,7 +261,6 @@ class NightMarketView(discord.ui.View):
         self.add_item(NightMarketSkinReveal(skin4, skin4.seen, 3, skin4_embed))
         self.add_item(NightMarketSkinReveal(skin5, skin5.seen, 4, skin5_embed))
         self.add_item(NightMarketSkinReveal(skin6, skin6.seen, 5, skin6_embed))
-
 
     @discord.ui.button(style=discord.ButtonStyle.green, emoji=discord.PartialEmoji.from_str("<:expand:1080746652815593572>"), custom_id="expand_v1", row=2)
     async def image(self, button: discord.ui.Button, interaction: discord.Interaction):
@@ -286,6 +288,7 @@ class NightMarketView(discord.ui.View):
             await interaction.response.send_message("These buttons aren't for you!", ephemeral=True)
             return False
         return True
+
 
 class ThumbnailToImageOnly(discord.ui.View):
     def __init__(self):
@@ -610,6 +613,7 @@ class SuggestionDeveloperMessagePrompt(discord.ui.Modal):
             await interaction.client.db.execute("INSERT INTO suggestion_responses(suggestion_id, author_id, response, response_time) VALUES($1, $2, $3, $4)", self.suggestion_id, interaction.user.id, response, round(time.time()))
             await interaction.response.send_message("Your repsonse was sent successfullly.", embed=embed, ephemeral=True)
 
+
 class ReasonDropDown(discord.ui.Select):
     def __init__(self, menu_type: str):
         if menu_type == "accept":
@@ -638,6 +642,7 @@ class ReasonView(discord.ui.View):
         super().__init__(timeout=30, disable_on_timeout=True)
 
         self.add_item(ReasonDropDown(menu_type))
+
 
 class SuggestionDeveloperView(discord.ui.View):
     def __init__(self):
@@ -693,21 +698,23 @@ class SuggestionDeveloperView(discord.ui.View):
         suggestion = await interaction.client.db.fetchrow("SELECT * FROM suggestions WHERE server_message_id = $1", interaction.message.id)
         await interaction.client.db.execute("UPDATE suggestions SET approved = $1, closed = $2 WHERE suggestion_id = $3", True, True, suggestion.get('suggestion_id'))
         send_status = "User was not notified"
+        embed = discord.Embed(title="Suggestion approved", description=message, color=discord.Color.green())
+        embed.set_author(name="Cypher's Laptop",
+                         icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        embed.add_field(name=f"Your suggestion #{suggestion.get('suggestion_id')}", value=suggestion.get('content'))
         try:
             user = await interaction.client.get_or_fetch_user(suggestion.get('user_id'))
         except discord.NotFound:
             send_status = f"User with ID {suggestion.get('user_id')} was not found."
         else:
             try:
-                embed = discord.Embed(title="Suggestion approved", description=message, color=discord.Color.green())
-                embed.set_author(name="Cypher's Laptop", icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
-                embed.add_field(name=f"Your suggestion #{suggestion.get('suggestion_id')}", value=suggestion.get('content'))
+
                 await user.send(embed=embed)
             except discord.Forbidden:
-                send_status = f"{user}'s DMs are closed."
+                send_status = f"**{user}**'s DMs are closed."
             else:
-                send_status = f"{user} was successfully notified of their suggestion status."
-        await interaction.followup.send(send_status, ephemeral=True)
+                send_status = f"**{user}** was successfully notified of their suggestion status."
+        await interaction.followup.send(send_status, embed=embed, ephemeral=True)
         for item in self.children:
             if isinstance(item, discord.ui.Button) and item.label == "Deny":
                 self.remove_item(item)
@@ -716,7 +723,8 @@ class SuggestionDeveloperView(discord.ui.View):
         button.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>") if button.label == "Accept" else discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
         button.label = f"Accepted by {interaction.user} for: {view.raw_result}" if button.label == "Accept" else f"Denied by {interaction.user} for: {view.raw_result}"
         button.disabled = True
-        await interaction.message.edit(view=self)
+        interaction.message.embeds[0].color = discord.Color.green()
+        await interaction.message.edit(view=self, embeds=interaction.message.embeds)
 
 
 
@@ -734,23 +742,24 @@ class SuggestionDeveloperView(discord.ui.View):
             "UPDATE suggestions SET approved = $1, closed = $2 WHERE suggestion_id = $3", False, True,
             suggestion.get('suggestion_id'))
         send_status = "User was not notified"
+        embed = discord.Embed(title="Suggestion denied", description=message, color=discord.Color.red())
+        embed.set_author(name="Cypher's Laptop",
+                         icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        embed.add_field(name=f"Your suggestion #{suggestion.get('suggestion_id')}",
+                        value=suggestion.get('content'))
         try:
             user = await interaction.client.get_or_fetch_user(suggestion.get('user_id'))
         except discord.NotFound:
             send_status = f"User with ID {suggestion.get('user_id')} was not found."
         else:
             try:
-                embed = discord.Embed(title="Suggestion denied", description=message, color=discord.Color.red())
-                embed.set_author(name="Cypher's Laptop",
-                                 icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
-                embed.add_field(name=f"Your suggestion #{suggestion.get('suggestion_id')}",
-                                value=suggestion.get('content'))
+
                 await user.send(embed=embed)
             except discord.Forbidden:
                 send_status = f"{user}'s DMs are closed."
             else:
                 send_status = f"{user} was successfully notified of their suggestion status."
-        await interaction.followup.send(send_status, ephemeral=True)
+        await interaction.followup.send(send_status, embed=embed, ephemeral=True)
         for item in self.children:
             if isinstance(item, discord.ui.Button) and item.label == "Accept":
                 self.remove_item(item)
@@ -759,6 +768,7 @@ class SuggestionDeveloperView(discord.ui.View):
         button.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>") if button.label == "Accept" else discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
         button.label = f"Accepted by {interaction.user} for: {view.raw_result}" if button.label == "Accept" else f"Denied by {interaction.user} for: {view.raw_result}"
         button.disabled = True
+        interaction.message.embeds[0].color = discord.Color.red()
         await interaction.message.edit(view=self)
 
 
