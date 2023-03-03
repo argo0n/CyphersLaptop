@@ -108,9 +108,9 @@ class SelectSetting(discord.ui.Select):
         await interaction.response.edit_message(embed=self.view.embed, view=self.view)
 
 
-enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
-show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
-picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or in 4 embeds.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
+enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
+show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
+picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or in 4 embeds.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
 
 
 class ViewStoreFromReminder(discord.ui.View):

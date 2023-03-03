@@ -99,13 +99,13 @@ def store_here(skin_in_wishlist):
     date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
     if skin_in_wishlist:
         return (
-            discord.Embed(title="Your VALORANT Store has reset! You have WISHLISTED SKINS in your store", description="Tap here to check it!", color=3092790),
-            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="<:wlGUN:1046281227142975538> You have **WISHLISTED SKINS** in your store!", color=3092790).set_footer(text=date_asstr)
+            discord.Embed(title="Your VALORANT Store has reset! You have WISHLISTED SKINS in your store", description="Tap here to check it!", color=2829617),
+            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="<:wlGUN:1046281227142975538> You have **WISHLISTED SKINS** in your store!", color=2829617).set_footer(text=date_asstr)
         )
     else:
         return (
-            discord.Embed(title="Your VALORANT Store has reset", description="Tap here to check it!", color=3092790),
-            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="Check out your newly refreshed <:val:1046289333344288808> Store.", color=3092790).set_footer(text=date_asstr)
+            discord.Embed(title="Your VALORANT Store has reset", description="Tap here to check it!", color=2829617),
+            discord.Embed(title="Your <:val:1046289333344288808> VALORANT Store has reset", description="Check out your newly refreshed <:val:1046289333344288808> Store.", color=2829617).set_footer(text=date_asstr)
         )
 
 
@@ -207,7 +207,7 @@ def night_market_closed(before_nm = False):
     else:
         return discord.Embed(title="VALORANT's Night Market is not open!",
                              description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!",
-                             color=3092790).set_footer(
+                             color=2829617).set_footer(
             text="Based on previous Night Market appearances, the next Night Market might open in appr. February 2023.").set_image(
             url="https://cdn.discordapp.com/attachments/868454485683470397/1060407886393647155/nightmarket_e.png")
 

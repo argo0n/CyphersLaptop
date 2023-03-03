@@ -38,7 +38,7 @@ def bundle_responses_into_embeds(responses: list[tuple], base_embed: Optional[di
     embeds = []
     for response_chunk in discord.utils.as_chunks(responses, 5):
         embed = base_embed or discord.Embed()
-        embed.color = 3092790
+        embed.color = 2829617
         for response in response_chunk:
             embed.add_field(name=response[0], value=response[1], inline=False)
         embeds.append(embed)
@@ -436,10 +436,10 @@ class ViewVariants(discord.ui.View):
                         self.content = f"[{title}](https://cypherslaptop.nogra.xyz/video?{params})"
                         self.embed = None
                     elif (display_icon := level.get('displayIcon')) is not None:
-                        self.embed = discord.Embed(title=title, color=3092790).set_image(url=display_icon).set_footer(text="If no image appears, select the level to reload it.")
+                        self.embed = discord.Embed(title=title, color=2829617).set_image(url=display_icon).set_footer(text="If no image appears, select the level to reload it.")
                         self.content = None
                     else:
-                        self.embed = discord.Embed(title=title, color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
+                        self.embed = discord.Embed(title=title, color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
                         self.content = None
                     break
         else:
@@ -452,7 +452,7 @@ class ViewVariants(discord.ui.View):
                     disp = self.skin.displayIcon
                 else:
                     disp = self.skin.chromas[0].get('displayIcon')
-                self.embed = discord.Embed(title=title, color=3092790).set_image(url=disp)
+                self.embed = discord.Embed(title=title, color=2829617).set_image(url=disp)
                 self.content = None
                 return
             for chroma in self.skin.chromas:
@@ -465,10 +465,10 @@ class ViewVariants(discord.ui.View):
                         self.content = f"[{title}](https://cypherslaptop.nogra.xyz/video?{params})"
                         self.embed = None
                     elif (display_icon := chroma.get('displayIcon')) is not None:
-                        self.embed = discord.Embed(title=title, color=3092790).set_image(url=display_icon).set_footer(text="If no image appears, select the chroma to reload it.")
+                        self.embed = discord.Embed(title=title, color=2829617).set_image(url=display_icon).set_footer(text="If no image appears, select the chroma to reload it.")
                         self.content = None
                     else:
-                        self.embed = discord.Embed(title=title, color=3092790).set_image(
+                        self.embed = discord.Embed(title=title, color=2829617).set_image(
                             url="https://cdn.discordapp.com/attachments/1046947484150284390/1061895579359252531/no_image.jpg")
                         self.content = None
                     break
@@ -563,7 +563,7 @@ class SuggestionUserMessagePrompt(discord.ui.Modal):
         response = self.children[0].value
         cut_text = suggestion.get('content') if len(suggestion.get('content')) < 100 else suggestion.get('content')[
                                                                                           :100] + "..."
-        embed = discord.Embed(title=f"{interaction.user} has responded to your developer message", description=cut_text, color=3092790)
+        embed = discord.Embed(title=f"{interaction.user} has responded to your developer message", description=cut_text, color=2829617)
         embed.add_field(name=f"{interaction.user.name}#{interaction.user.discriminator}", value=response)
         try:
             c = await interaction.client.fetch_channel(1081078682153652326)
@@ -600,7 +600,7 @@ class SuggestionDeveloperMessagePrompt(discord.ui.Modal):
             return await interaction.response.send_message(embed=ErrorEmbed(f"I could not find the user of the suggestion `{self.suggestion_id}`.\n`{suggestion.get('user_id')}"), ephemeral=True)
         response = self.children[0].value
         cut_text = suggestion.get('content') if len(suggestion.get('content')) < 100 else suggestion.get('content')[:100] + "..."
-        embed = discord.Embed(title=f"A developer has responded to your suggestion #{suggestion.get('suggestion_id')}", description=cut_text, color=3092790)
+        embed = discord.Embed(title=f"A developer has responded to your suggestion #{suggestion.get('suggestion_id')}", description=cut_text, color=2829617)
         embed.add_field(name=f"{interaction.user.name}#{interaction.user.discriminator}", value=response)
         try:
             await suggested_user.send(embed=embed, view=SuggestionUserReplyView())
