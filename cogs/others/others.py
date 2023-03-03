@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 
 from main import clvt
-from utils.buttons import SingleURLButton
+from utils.buttons import SingleURLButton, SuggestionDeveloperView, confirm, SuggestionUserReplyView
 from .settings import Settings
 from ..maincommands.database import DBManager
 from utils.responses import not_me_message, message_delete_success, help_command, dm_only_command
@@ -15,6 +15,8 @@ class Others(Settings, commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        self.client.add_view(SuggestionDeveloperView())
+        self.client.add_view(SuggestionUserReplyView())
         await self.client.wait_until_ready()
         self.dbManager = DBManager(self.client.db)
 
@@ -76,10 +78,21 @@ class Others(Settings, commands.Cog):
     async def suggest(self, ctx: discord.ApplicationContext, suggestion: discord.Option(str, min_length=1, max_length=512)):
         await ctx.defer()
         channel = await self.client.fetch_channel(1075290139703660594)
-        suggestion_id = await self.client.db.fetchval("INSERT INTO suggestions(user_id, content) VALUES($1, $2) RETURNING suggestion_id", ctx.author.id, suggestion)
-        embed = discord.Embed(title=f"Suggestion #{suggestion_id}", description=suggestion, color=discord.Color.blue())
-        embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
-        channel_suggestion_msg = await channel.send(embed=embed)
-        await self.client.db.execute("UPDATE suggestions SET server_message_id = $1 WHERE suggestion_id = $2", channel_suggestion_msg.id, suggestion_id)
-        await ctx.respond(embed=discord.Embed(title="Your suggestion has been submitted.", description=suggestion, color=self.client.embed_color).set_footer(text="If we need more information, you'll be contacted via DMs.").set_thumbnail(url=ctx.me.display_avatar.url))
+        c = confirm(ctx, self.client, 30)
+        m = await ctx.respond(embed=discord.Embed(title="Are you sure you want to make this suggestion?", description=suggestion, color=self.client.embed_color), view=c)
+        await c.wait()
+        if c.returning_value is not True:
+            return
+        else:
+            suggestion_id = await self.client.db.fetchval("INSERT INTO suggestions(user_id, content) VALUES($1, $2) RETURNING suggestion_id", ctx.author.id, suggestion)
+            embed = discord.Embed(title=f"Suggestion #{suggestion_id}", description=suggestion, color=discord.Color.blue())
+            embed.set_author(name=ctx.author, icon_url=ctx.author.display_avatar.url)
+            channel_suggestion_msg = await channel.send(embed=embed, view=SuggestionDeveloperView())
+            await self.client.db.execute("UPDATE suggestions SET server_message_id = $1 WHERE suggestion_id = $2", channel_suggestion_msg.id, suggestion_id)
+            user_embed = discord.Embed(title="Your suggestion has been submitted.", description=suggestion, color=self.client.embed_color).set_footer(text="If we need more information, you'll be contacted via DMs.").set_thumbnail(url=ctx.me.display_avatar.url)
+            if type(m) == discord.Interaction:
+                await m.edit_original_response(embed=user_embed)
+            else:
+                await m.edit(embed=user_embed)
+            await ctx.author.send(embed=user_embed)
 
