@@ -139,7 +139,8 @@ def rate_limit_error():
 
 
 def multifactor_detected():
-    return ErrorEmbed(title="Additional Verification Required", description="Your account has Multi Factor Authentication (MFA) enabled.\nA 6-digit code has been sent to your email, check your email and enter the MFA code below.").set_image(url="https://cdn.discordapp.com/attachments/871737314831908974/1045223829452095558/image.png")
+    return ErrorEmbed(title="Additional Verification Required", description="Your account has **Multi Factor Authentication (MFA) enabled**.\nRiot Games has sent a 6-digit code to your email, check your email and enter the MFA code below.")
+
 
 
 def multifactor_error():

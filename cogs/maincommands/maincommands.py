@@ -34,7 +34,8 @@ class MultiFactorModal(discord.ui.Modal):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embed=authenticating(True))
+        await interaction.response.defer()
+        #await interaction.response.send_message(embed=authenticating(True))
         self.interaction = interaction
         self.stop()
 
@@ -49,6 +50,9 @@ class EnterMultiFactor(discord.ui.View):
         await interaction.response.send_modal(self.modal)
         await self.modal.wait()
         button.disabled = True
+        button.emoji = discord.PartialEmoji.from_str("<a:CL_Loading:1081263238202794196>")
+        button.label = "Authenticating code..."
+        button.style = discord.ButtonStyle.grey
         await interaction.message.edit(view=self)
         self.code = self.modal.children[0].value
         self.stop()
@@ -319,26 +323,39 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             except riot_authorization.Exceptions.RiotMultifactorError:
                 # No multifactor provided check
                 v = EnterMultiFactor()
-                await ctx.respond(embed=multifactor_detected(), view=v)
+                m = await ctx.respond(embed=multifactor_detected(), view=v)
                 await v.wait()
+                b: discord.ui.Button = v.children[0]
                 if v.code is None:
                     return
                 try:
                     auth = riot_authorization.RiotAuth()
                     await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
                 except riot_authorization.Exceptions.RiotAuthenticationError:
-                    await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=authentication_error(), delete_after=30.0)
                     print("Authentication error")
                     return
                 except riot_authorization.Exceptions.RiotRatelimitError:
-                    await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=rate_limit_error(), delete_after=30.0)
                     print("Rate limited")
                     return
                 except riot_authorization.Exceptions.RiotMultifactorError:
-                    await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=multifactor_error(), delete_after=30.0)
                     print("Multifactor error")
                     return
-                await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+                #await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+                b.label = "Authentication Success"
+                b.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>")
+                await m.edit(view=v)
             headers = {
                 "Authorization": f"Bearer {auth.access_token}",
                 "User-Agent": riot_account.username,
