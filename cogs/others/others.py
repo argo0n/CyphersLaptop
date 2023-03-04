@@ -96,5 +96,6 @@ class Others(Settings, commands.Cog):
                 await m.edit_original_response(embed=user_embed)
             else:
                 await m.edit(embed=user_embed)
-            await ctx.author.send(embed=user_embed)
+            if ctx.guild is not None:
+                await ctx.author.send(embed=user_embed)
 
