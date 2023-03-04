@@ -1,8 +1,10 @@
+import json
+
 import discord
 from discord.ext import commands
 
 from main import clvt
-from utils.buttons import SingleURLButton, SuggestionDeveloperView, confirm, SuggestionUserReplyView
+from utils.buttons import SingleURLButton, SuggestionDeveloperView, confirm, SuggestionUserReplyView, FAQMenu, FAQView
 from .settings import Settings
 from ..maincommands.database import DBManager
 from utils.responses import not_me_message, message_delete_success, help_command, dm_only_command
@@ -15,6 +17,7 @@ class Others(Settings, commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
+        self.client.add_view(FAQView())
         self.client.add_view(SuggestionDeveloperView())
         self.client.add_view(SuggestionUserReplyView())
         await self.client.wait_until_ready()
@@ -99,3 +102,9 @@ class Others(Settings, commands.Cog):
             if ctx.guild is not None:
                 await ctx.author.send(embed=user_embed)
 
+    @commands.slash_command(name="faq", description="Check out Cypher's Laptop's frequently asked questions.")
+    async def faq(self, ctx: discord.ApplicationContext):
+        embed = discord.Embed(description="Select a Frequently Asked Question.", color=self.client.embed_color)
+        embed.set_author(name="Cypher's Laptop",
+                         icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        await ctx.respond(embed=embed, view=FAQView())

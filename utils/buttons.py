@@ -772,3 +772,34 @@ class SuggestionDeveloperView(discord.ui.View):
         await interaction.message.edit(view=self)
 
 
+class FAQMenu(discord.ui.Select):
+    def __init__(self):
+
+        with open('assets/faq.json', 'r') as f:
+            self.faq = json.load(f)
+        options = []
+        for i in self.faq:
+            cut_description = i.get('a')[:50] + "..." if len(i.get('a')) > 50 else i.get('a')
+            op = discord.SelectOption(label=i.get('q'), value=i.get('q'), description=cut_description)
+            options.append(op)
+        super().__init__(custom_id="faq_menuv1", placeholder="Select a FAQ", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        a = "Undefined"
+        for i in self.faq:
+            if i.get('q') == self.values[0]:
+                a = i.get('a')
+        embed = discord.Embed(title=self.values[0], description=a)
+        embed.set_author(name="Cypher's Laptop", icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        for i in self.options:
+            if i.value == self.values[0]:
+                i.default = True
+            else:
+                i.default = False
+        await interaction.response.edit_message(embed=embed, view=self.view)
+
+
+class FAQView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self.add_item(FAQMenu())
