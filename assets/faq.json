@@ -25,7 +25,7 @@
   },
   {
     "q": "I have an idea for a feature, or a suggestion!",
-    "a": "Stay tuned for"
+    "a": "Stay tuned! We are working on a feature that allows you to submit your ideas and suggestions directly to us."
   },
   {
     "q": "I'm from Riot Games and would like to speak to the developer of this project.",
@@ -33,6 +33,6 @@
   },
   {
     "q": "What is your Terms of Service and Privacy Policy?",
-    "a": "Take a look at them here."
+    "a": "Take a look our [Terms of Service](https://cypherslaptop.nogra.xyz/terms) and [Privacy Policy](https://cypherslaptop.nogra.xyz/privacy)."
   }
 ]
