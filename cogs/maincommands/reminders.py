@@ -208,7 +208,7 @@ class StoreReminder(commands.Cog):
                     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
                     "X-Riot-ClientVersion": "pbe-shipping-55-604424"
                 }
-                skin_uuids, remaining = await self.dbManager.get_store(user.id, headers, auth.user_id, riot_account.region)
+                skin_uuids, remaining = await self.dbManager.get_store(user.id, riot_account.username, headers, auth.user_id, riot_account.region)
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)
                 skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)
                 notif_embed, actual_embed = store_here(skin_in_wishlist)

@@ -317,7 +317,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         # attempt to fetch store from cache first, if no record exists we'll run it again
-        skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, None, None, None)
+        skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, None, None, None)
         if skin_uuids is None:
             if riot_account:
                 await ctx.defer()
@@ -378,7 +378,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                 "X-Riot-ClientVersion": "pbe-shipping-55-604424"
             }
             try:
-                skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, headers, auth.user_id, riot_account.region)
+                skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, headers, auth.user_id, riot_account.region)
             except KeyError:
                 error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
                 return await ctx.respond(embed=error_embed)
