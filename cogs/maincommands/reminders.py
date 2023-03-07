@@ -23,7 +23,7 @@ class ViewStoreFromDaily(discord.ui.Button):
         date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
         riot_account: RiotUser = await self.DBManager.get_user_by_user_id(interaction.user.id)
         message_date = interaction.message.created_at.date()
-        skins, remaining = await self.DBManager.get_store(interaction.user.id, None, None, None, message_date)
+        skins, remaining = await self.DBManager.get_store(interaction.user.id, riot_account.username, None, None, None, message_date)
         if skins is None:
             await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
         wishlisted = 0
