@@ -25,6 +25,7 @@ from .reminders import StoreReminder, ViewStoreFromReminder
 
 load_dotenv()
 
+
 class MultiFactorModal(discord.ui.Modal):
     def __init__(self):
         self.interaction: discord.Interaction = None
@@ -34,7 +35,8 @@ class MultiFactorModal(discord.ui.Modal):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        await interaction.response.send_message(embed=authenticating(True))
+        await interaction.response.defer()
+        #await interaction.response.send_message(embed=authenticating(True))
         self.interaction = interaction
         self.stop()
 
@@ -49,6 +51,9 @@ class EnterMultiFactor(discord.ui.View):
         await interaction.response.send_modal(self.modal)
         await self.modal.wait()
         button.disabled = True
+        button.emoji = discord.PartialEmoji.from_str("<a:CL_Loading:1081263238202794196>")
+        button.label = "Authenticating code..."
+        button.style = discord.ButtonStyle.grey
         await interaction.message.edit(view=self)
         self.code = self.modal.children[0].value
         self.stop()
@@ -213,26 +218,39 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
             v = EnterMultiFactor()
-            await ctx.respond(embed=multifactor_detected(), view=v)
+            m = await ctx.respond(embed=multifactor_detected(), view=v)
             await v.wait()
+            b: discord.ui.Button = v.children[0]
             if v.code is None:
                 return
             try:
                 auth = riot_authorization.RiotAuth()
                 await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
             except riot_authorization.Exceptions.RiotAuthenticationError:
-                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                b.label = "Authentication failed"
+                b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                await m.edit(view=v)
+                await ctx.respond(embed=authentication_error(), delete_after=30.0)
                 print("Authentication error")
                 return
             except riot_authorization.Exceptions.RiotRatelimitError:
-                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                b.label = "Authentication failed"
+                b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                await m.edit(view=v)
+                await ctx.respond(embed=rate_limit_error(), delete_after=30.0)
                 print("Rate limited")
                 return
             except riot_authorization.Exceptions.RiotMultifactorError:
-                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                b.label = "Authentication failed"
+                b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                await m.edit(view=v)
+                await ctx.respond(embed=multifactor_error(), delete_after=30.0)
                 print("Multifactor error")
                 return
-            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+            # await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+            b.label = "Authentication Success"
+            b.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>")
+            await m.edit(view=v)
         headers = {
             "Authorization": f"Bearer {auth.access_token}",
             "User-Agent": riot_account.username,
@@ -298,13 +316,13 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if riot_account:
+            await ctx.defer()
+        else:
+            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         # attempt to fetch store from cache first, if no record exists we'll run it again
-        skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, None, None, None)
+        skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, None, None, None)
         if skin_uuids is None:
-            if riot_account:
-                await ctx.defer()
-            else:
-                return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
             try:
                 auth = riot_authorization.RiotAuth()
                 await auth.authorize(riot_account.username, riot_account.password)
@@ -319,26 +337,39 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             except riot_authorization.Exceptions.RiotMultifactorError:
                 # No multifactor provided check
                 v = EnterMultiFactor()
-                await ctx.respond(embed=multifactor_detected(), view=v)
+                m = await ctx.respond(embed=multifactor_detected(), view=v)
                 await v.wait()
+                b: discord.ui.Button = v.children[0]
                 if v.code is None:
                     return
                 try:
                     auth = riot_authorization.RiotAuth()
                     await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
                 except riot_authorization.Exceptions.RiotAuthenticationError:
-                    await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=authentication_error(), delete_after=30.0)
                     print("Authentication error")
                     return
                 except riot_authorization.Exceptions.RiotRatelimitError:
-                    await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=rate_limit_error(), delete_after=30.0)
                     print("Rate limited")
                     return
                 except riot_authorization.Exceptions.RiotMultifactorError:
-                    await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
+                    b.label = "Authentication failed"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                    await m.edit(view=v)
+                    await ctx.respond(embed=multifactor_error(), delete_after=30.0)
                     print("Multifactor error")
                     return
-                await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+                #await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+                b.label = "Authentication Success"
+                b.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>")
+                await m.edit(view=v)
             headers = {
                 "Authorization": f"Bearer {auth.access_token}",
                 "User-Agent": riot_account.username,
@@ -347,7 +378,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                 "X-Riot-ClientVersion": "pbe-shipping-55-604424"
             }
             try:
-                skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, headers, auth.user_id, riot_account.region)
+                skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, headers, auth.user_id, riot_account.region)
             except KeyError:
                 error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
                 return await ctx.respond(embed=error_embed)
@@ -358,7 +389,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
-                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=3092790)]
+                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=self.client.embed_color)]
         currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0

@@ -46,7 +46,7 @@ class clvt(commands.Bot):
         self.custom_status = False
         self.prefixes = {}
         self.uptime = None
-        self.embed_color: int = 0x57F0F0
+        self.embed_color: int = 2829617
         self.db: asyncpg.pool = None
         self.redis_pool: aioredis.ConnectionPool = None
         self.serverconfig = {}

@@ -23,7 +23,7 @@ class ViewStoreFromDaily(discord.ui.Button):
         date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
         riot_account: RiotUser = await self.DBManager.get_user_by_user_id(interaction.user.id)
         message_date = interaction.message.created_at.date()
-        skins, remaining = await self.DBManager.get_store(interaction.user.id, None, None, None, message_date)
+        skins, remaining = await self.DBManager.get_store(interaction.user.id, riot_account.username, None, None, None, message_date)
         if skins is None:
             await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
         wishlisted = 0
@@ -34,9 +34,9 @@ class ViewStoreFromDaily(discord.ui.Button):
                 username = riot_account.username
             else:
                 username = interaction.user.name
-            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=3092790)
+            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
         else:
-            base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr)
+            base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
         embeds = [base_embed]
         currency = await self.cog.get_currency_details(user_settings.currency)
         for skin in skins:
@@ -108,9 +108,9 @@ class SelectSetting(discord.ui.Select):
         await interaction.response.edit_message(embed=self.view.embed, view=self.view)
 
 
-enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
-show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
-picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or in 4 embeds.", color=3092790).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
+enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
+show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
+picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or in 4 embeds.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
 
 
 class ViewStoreFromReminder(discord.ui.View):
@@ -208,7 +208,7 @@ class StoreReminder(commands.Cog):
                     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
                     "X-Riot-ClientVersion": "pbe-shipping-55-604424"
                 }
-                skin_uuids, remaining = await self.dbManager.get_store(user.id, headers, auth.user_id, riot_account.region)
+                skin_uuids, remaining = await self.dbManager.get_store(user.id, riot_account.username, headers, auth.user_id, riot_account.region)
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)
                 skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)
                 notif_embed, actual_embed = store_here(skin_in_wishlist)

@@ -63,7 +63,7 @@ class WishListManager(commands.Cog):
                 if tier["uuid"] == sk.contentTierUUID:
                     em = tier["emoji"]
             skins.append(f"{em} {sk.displayName}")
-        embed = discord.Embed(title="Wishlist", description="\n".join(skins) if len(skins) > 0 else "You have no skins on your wishlist. Use </wishlist add:1046095784292130946> to add some!", color=3092790)
+        embed = discord.Embed(title="Wishlist", description="\n".join(skins) if len(skins) > 0 else "You have no skins on your wishlist. Use </wishlist add:1046095784292130946> to add some!", color=self.client.embed_color)
         embed.set_footer(text=f"{len(skins)} skins on your wishlist")
         await ctx.respond(embed=embed)
 

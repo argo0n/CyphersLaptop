@@ -5,11 +5,11 @@
   },
   {
     "q": "Why must I provide my username and password?",
-    "a": "Unfortunately, Riot Games has mentioned that tracking a user's store is not supported in their official API.\nFrom an excerpt of VALORANT's Developer API Policy:\n> Examples of Unapproved Use Cases\n> • Online store tracking or updates. The technology for this does not currently exist in the API.\nThis is clearly not true, proven by Cypher's Laptop's core features. This means that Cypher's Laptop is not allowed to use the official way (Authorizing with Riot Account Management) to communicate with your account.\nIn the future, we will provide new features that allows us to connect to your account via Riot Games' official method. Till then, we will continue to work with our current method for the foreseeable future."
+    "a": "Unfortunately, Riot Games has mentioned that tracking a user's store is not supported in their official API.\n\nFrom an excerpt of VALORANT's Developer API Policy:\n > **Examples of Unapproved Use Cases**\n > • Online store tracking or updates. The technology for this does not currently exist in the API.\n\nThis is clearly not true, proven by Cypher's Laptop's core features. \nThis means that Cypher's Laptop is not allowed to use the official way (Authorizing with Riot Account Management) to communicate with your account.\nIn the future, we will provide new features that allows us to connect to your account via Riot Games' official method. Till then, we will continue to work with our current method for the foreseeable future."
   },
   {
     "q": "Is my password secure when I provide it to you?",
-    "a": "Yes! We take the security of our users' information very seriously. As such we use industry-standard encryption methods to protect your Riot account password when you provide it to us. Your password is encrypted using Fernet symmetric encryption and stored in a secure database that is protected by a separate password. Rest assured that even the developers of Cypher's Laptop do not have access to your unencrypted password, and it is only decrypted when passed to Riot Games. At no point is your password visible or accessible to anyone other than you. We take security seriously and regularly update our measures to ensure your information is always protected."
+    "a": "**Yes!** \nWe take the security of our users' information very seriously. \n\nWe use industry-standard encryption methods to protect your Riot account password when you provide it to us. \nYour password is encrypted using Fernet symmetric encryption and stored in a secure database that is protected by a separate password. \nRest assured that even the developers of Cypher's Laptop do not have access to your unencrypted password, and it is only decrypted when passed to Riot Games. \nAt no point is your password visible or accessible to anyone other than you."
   },
   {
     "q": "How do I show the price of a skin in my own currency?",
@@ -25,7 +25,7 @@
   },
   {
     "q": "I have an idea for a feature, or a suggestion!",
-    "a": "Stay tuned for"
+    "a": "Stay tuned! We are working on a feature that allows you to submit your ideas and suggestions directly to us."
   },
   {
     "q": "I'm from Riot Games and would like to speak to the developer of this project.",
@@ -33,6 +33,6 @@
   },
   {
     "q": "What is your Terms of Service and Privacy Policy?",
-    "a": "Take a look at them here."
+    "a": "Take a look our [Terms of Service](https://cypherslaptop.nogra.xyz/terms) and [Privacy Policy](https://cypherslaptop.nogra.xyz/privacy)."
   }
 ]
