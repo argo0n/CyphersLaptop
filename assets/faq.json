@@ -1,7 +1,7 @@
 [
   {
     "q": "How do I get started?",
-    "a": "/login to Cypher's Laptop with your Riot account, and we'll handle the rest.\n\nEnable our extra features for an improved experience via /reminders and /settings!"
+    "a": "</login:1045213188209258518> to Cypher's Laptop with your Riot account, and we'll handle the rest.\n\nEnable our extra features for an improved experience via </reminders:1046432239724015697> and </settings:1055460993225990174>!"
   },
   {
     "q": "Why must I provide my username and password?",
@@ -13,7 +13,7 @@
   },
   {
     "q": "How do I show the price of a skin in my own currency?",
-    "a": "Select your preferred currency under /settings >> Show skin price."
+    "a": "Select your preferred currency under </settings:1055460993225990174> >> Show skin price."
   },
   {
     "q": "What does \"calculated via USD\" mean under the currency selection?",
