@@ -316,13 +316,13 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
+        if riot_account:
+            await ctx.defer()
+        else:
+            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
         # attempt to fetch store from cache first, if no record exists we'll run it again
         skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, None, None, None)
         if skin_uuids is None:
-            if riot_account:
-                await ctx.defer()
-            else:
-                return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
             try:
                 auth = riot_authorization.RiotAuth()
                 await auth.authorize(riot_account.username, riot_account.password)
