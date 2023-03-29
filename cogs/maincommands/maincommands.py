@@ -26,6 +26,80 @@ from .reminders import StoreReminder, ViewStoreFromReminder
 load_dotenv()
 
 
+class UserSelectView(discord.ui.View):
+    def __init__(self, author, skin1, skin2, skin3, skin4):
+        self.author = author
+        self.target_user = None
+        self.skin1: GunSkin = skin1
+        self.skin2: GunSkin = skin2
+        self.skin3: GunSkin = skin3
+        self.skin4: GunSkin = skin4
+        super().__init__(timeout=15 * 60)
+
+    @discord.ui.user_select(placeholder="Select a member to prank!")
+    async def select_callback(self, select, interaction):
+        self.target_user = select.values[0]
+        for b in self.children:
+            if isinstance(b, discord.ui.Button) and "Confirm" in b.label:
+                if not self.target_user.bot:
+                    b.disabled = False
+                else:
+                    b.disabled = True
+        await interaction.response.edit_message(embed=self.format_fake_store(), view=self)
+
+    @discord.ui.button(label="Confirm", disabled=True, style=discord.ButtonStyle.green)
+    async def confirm_callback(self, button, interaction):
+        pass
+
+    @discord.ui.button(label="Cancel", disabled=False, style=discord.ButtonStyle.red)
+    async def cancel_callback(self, button, interaction):
+        for b in self.children:
+            b.disabled = True
+        embed = self.format_fake_store()
+        embed.description = "Cancelled. No Store was added."
+        await interaction.response.edit_message(embed=embed, view=self)
+        self.stop()
+
+    def format_fake_store(self):
+        tier_data = get_tier_data()
+        embed = discord.Embed(title="April Fools Prank Store", color=2829617)
+        embed.set_author(name="Cypher's Laptop",
+                         icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        if self.target_user is None:
+            target_user_qualifies = False
+            user_str = "\_\_\_\_\_\_\_\_\_\_"
+        else:
+            target_user_qualifies = True
+            user_str = f"{self.target_user.name}#{self.target_user.discriminator}"
+        if self.target_user:
+            if self.target_user == self.author:
+                description = [f"I don't know why you want to show **yourself** a fake Store, but ok.\nThis fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+            elif self.target_user.bot:
+                description = [f"**You cannot give bots fake Stores.**. They can't see it anyways.", ""]
+                target_user_qualifies = False
+            else:
+                description = [f"This fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+        else:
+            description = [f"This fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+        for skin in [self.skin1, self.skin2, self.skin3, self.skin4]:
+            if skin is not None:
+                tier_emoji = " "
+                for tier in tier_data:
+                    if tier["uuid"] == skin.contentTierUUID:
+                        tier_emoji = tier["emoji"]
+                cost = f"<:vp:1045605973005434940> {comma_number(skin.cost)}" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+                skin_str = f"{tier_emoji} **{skin.displayName}** {cost}"
+            else:
+                skin_str = f"\_\_\_\_\_\_\_\_\_\_ <:vp:1045605973005434940> 0"
+            description.append(skin_str)
+        description.append("")
+        if self.target_user is None or not target_user_qualifies:
+            description.append("Select a user to prank!")
+        else:
+            description.append("Press **Confirm** to submit the fake Store.\nIt cannot be removed or edited once you submit it, but you can make new ones!")
+        embed.description = "\n".join(description)
+        return embed
+
 class MultiFactorModal(discord.ui.Modal):
     def __init__(self):
         self.interaction: discord.Interaction = None
@@ -445,6 +519,42 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             return await ctx.respond(embed=e, ephemeral=True)
         await self.update_skin_db()
         await ctx.respond(embed=updated_weapon_database())
+
+    @commands.slash_command(name="fakestore", description="Generate a fake VALORANT Store for your friend that shows up on April 1!")
+    async def fake_store(self, ctx: discord.ApplicationContext,
+                             skin1: discord.Option(str, description="1st skin",
+                                                   autocomplete=valorant_skin_autocomplete),
+                             skin2: discord.Option(str, description="2nd fake skin",
+                                                   autocomplete=valorant_skin_autocomplete),
+                             skin3: discord.Option(str, description="3rd fake skin",
+                                                   autocomplete=valorant_skin_autocomplete),
+                             skin4: discord.Option(str, description="4th fake skin",
+                                                   autocomplete=valorant_skin_autocomplete)):
+        if not self.ready:
+            return await ctx.respond(embed=not_ready())
+        skin1_ob = await self.dbManager.get_skin_by_name_or_uuid(skin1)
+        if skin1_ob is None:
+            return await ctx.respond(
+                embed=discord.Embed(title="Skin not found", description=f"Skin `{skin1}` not found.",
+                                    color=discord.Color.red()))
+        skin2_ob = await self.dbManager.get_skin_by_name_or_uuid(skin2)
+        if skin2_ob is None:
+            return await ctx.respond(
+                embed=discord.Embed(title="Skin not found", description=f"Skin `{skin2}` not found.",
+                                    color=discord.Color.red()))
+        skin3_ob = await self.dbManager.get_skin_by_name_or_uuid(skin3)
+        if skin3_ob is None:
+            return await ctx.respond(
+                embed=discord.Embed(title="Skin not found", description=f"Skin `{skin3}` not found.",
+                                    color=discord.Color.red()))
+        skin4_ob = await self.dbManager.get_skin_by_name_or_uuid(skin4)
+        if skin4_ob is None:
+            return await ctx.respond(
+                embed=discord.Embed(title="Skin not found", description=f"Skin `{skin4}` not found.",
+                                    color=discord.Color.red()))
+
+        view = UserSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob)
+        await ctx.respond(embed=view.format_fake_store(), view=view)
 
     @discord.default_permissions(administrator=True)
     @checks.dev()
