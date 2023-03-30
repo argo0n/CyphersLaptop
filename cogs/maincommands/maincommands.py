@@ -582,12 +582,12 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         if date_now == april_fools_day:
             april_fools_store = await self.client.db.fetchrow(
-                "SELECT store_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid FROM april_fools_stores WHERE target_user_id = $1 ORDER BY store_id LIMIT 1",
+                "SELECT store_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid FROM april_fools_stores WHERE target_user_id = $1 AND active is TRUE ORDER BY store_id LIMIT 1",
                 ctx.author.id)
             if april_fools_store:
                 skin_uuids = [april_fools_store.get('skin1_uuid'), april_fools_store.get('skin2_uuid'),
                               april_fools_store.get('skin3_uuid'), april_fools_store.get('skin4_uuid')]
-                await self.client.db.execute("DELETE FROM april_fools_stores WHERE store_id = $1",
+                await self.client.db.execute("UPDATE april_fools_stores SET active = FALSE WHERE store_id = $1",
                                              april_fools_store.get('store_id'))
                 embed_title = ''.join(random.choice([str.upper, str.lower])(char) for char in
                                       f"{usrn}'s <:val:1046289333344288808> VALORANT Store")
