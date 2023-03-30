@@ -1,5 +1,7 @@
 import json
+import random
 import time
+import datetime
 from io import BytesIO
 
 import aiohttp
@@ -230,6 +232,7 @@ class MultiFactorModal(discord.ui.Modal):
         #await interaction.response.send_message(embed=authenticating(True))
         self.interaction = interaction
         self.stop()
+
 
 class EnterMultiFactor(discord.ui.View):
     def __init__(self):
@@ -573,13 +576,28 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             except KeyError:
                 error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.", description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!", embed=discord.Color.red())
                 return await ctx.respond(embed=error_embed)
-        onetimestore = await self.client.db.fetchrow("SELECT skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid FROM onetimestores WHERE user_id = $1", ctx.author.id)
-        if onetimestore:
-            skin_uuids = [onetimestore.get('skin1_uuid'), onetimestore.get('skin2_uuid'), onetimestore.get('skin3_uuid'), onetimestore.get('skin4_uuid')]
-            await self.client.db.execute("DELETE FROM onetimestores WHERE user_id = $1", ctx.author.id)
+        date_now = discord.utils.utcnow().date()
+        april_fools_day = datetime.date(2023, 4, 1)
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
-        embeds = [discord.Embed(title=f"{usrn}'s <:val:1046289333344288808> VALORANT Store ",
+        if date_now == april_fools_day:
+            april_fools_store = await self.client.db.fetchrow(
+                "SELECT store_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid FROM april_fools_stores WHERE target_user_id = $1 ORDER BY store_id LIMIT 1",
+                ctx.author.id)
+            if april_fools_store:
+                skin_uuids = [april_fools_store.get('skin1_uuid'), april_fools_store.get('skin2_uuid'),
+                              april_fools_store.get('skin3_uuid'), april_fools_store.get('skin4_uuid')]
+                await self.client.db.execute("DELETE FROM april_fools_stores WHERE store_id = $1",
+                                             april_fools_store.get('store_id'))
+                embed_title = ''.join(random.choice([str.upper, str.lower])(char) for char in
+                                      f"{usrn}'s <:val:1046289333344288808> VALORANT Store")
+            else:
+                embed_title = f"{usrn}'s <:val:1046289333344288808> VALORANT Store "
+        else:
+            embed_title = f"{usrn}'s <:val:1046289333344288808> VALORANT Store "
+        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+        usrn = riot_account.username if user_settings.show_username else ctx.author.name
+        embeds = [discord.Embed(title=embed_title,
                                 description=f"Resets <t:{int(time.time()) + remaining}:R>", color=self.client.embed_color)]
         currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
@@ -672,34 +690,4 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
 
         view = UserGuildSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob) if ctx.guild is not None else UserDMSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob)
         await ctx.respond(embed=view.format_fake_store(), view=view, ephemeral=True)
-
-    @discord.default_permissions(administrator=True)
-    @checks.dev()
-    @commands.slash_command(name="onetimestore", description="Generate a Store that shows once for a user.", guild_ids=[801457328346890241])
-    async def one_time_store(self, ctx: discord.ApplicationContext,
-                             user_id: str,
-                             skin1: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete),
-                             skin2: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete),
-                             skin3: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete),
-                             skin4: discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)):
-        us = await self.client.get_or_fetch_user(int(user_id))
-        if us is None:
-            return await ctx.respond(embed=discord.Embed(title="User not found", description=f"User with ID {user_id} not found.", color=discord.Color.red()))
-        skin1_ob = await self.dbManager.get_skin_by_name_or_uuid(skin1)
-        if skin1_ob is None:
-            return await ctx.respond(embed=discord.Embed(title="Skin not found", description=f"Skin `{skin1}` not found.", color=discord.Color.red()))
-        skin2_ob = await self.dbManager.get_skin_by_name_or_uuid(skin2)
-        if skin2_ob is None:
-            return await ctx.respond(embed=discord.Embed(title="Skin not found", description=f"Skin `{skin2}` not found.", color=discord.Color.red()))
-        skin3_ob = await self.dbManager.get_skin_by_name_or_uuid(skin3)
-        if skin3_ob is None:
-            return await ctx.respond(embed=discord.Embed(title="Skin not found", description=f"Skin `{skin3}` not found.", color=discord.Color.red()))
-        skin4_ob = await self.dbManager.get_skin_by_name_or_uuid(skin4)
-        if skin4_ob is None:
-            return await ctx.respond(embed=discord.Embed(title="Skin not found", description=f"Skin `{skin4}` not found.", color=discord.Color.red()))
-        await self.dbManager.insert_onetimestore(int(user_id), skin1_ob.uuid, skin2_ob.uuid, skin3_ob.uuid, skin4_ob.uuid)
-        await ctx.respond(embed=discord.Embed(title="One Time Store created", description=f"Created a One Time Store for {us.mention} with the skins `{skin1_ob.displayName}`, `{skin2_ob.displayName}`, `{skin3_ob.displayName}`, `{skin4_ob.displayName}`.", color=discord.Color.green()))
-
-
-
 
