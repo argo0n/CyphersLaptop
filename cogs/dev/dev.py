@@ -559,7 +559,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
     @checks.dev()
     @commands.slash_command(name="broadcast", description="Broadcast updates.", guild_ids=[801457328346890241])
     async def broadcast(self, ctx: discord.ApplicationContext,
-                        embed_json: discord.Option(str),
+                        embed_json: discord.Option(str) = None,
                         content: discord.Option(str) = None,
                         embed_json2: discord.Option(str) = None,
                         embed_json3: discord.Option(str) = None,
