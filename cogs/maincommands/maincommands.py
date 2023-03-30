@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from main import clvt
 from utils import riot_authorization, get_store, checks
+from utils.format import print_exception
 from utils.helper import get_region_code
 from utils.specialobjects import GunSkin
 from utils.time import humanize_timedelta
@@ -26,7 +27,7 @@ from .reminders import StoreReminder, ViewStoreFromReminder
 load_dotenv()
 
 
-class UserSelectView(discord.ui.View):
+class UserGuildSelectView(discord.ui.View):
     def __init__(self, author, skin1, skin2, skin3, skin4):
         self.author = author
         self.target_user = None
@@ -48,13 +49,129 @@ class UserSelectView(discord.ui.View):
         await interaction.response.edit_message(embed=self.format_fake_store(), view=self)
 
     @discord.ui.button(label="Confirm", disabled=True, style=discord.ButtonStyle.green)
-    async def confirm_callback(self, button, interaction):
-        pass
+    async def confirm_callback(self, button, interaction: discord.Interaction):
+        try:
+            await interaction.client.db.execute("INSERT INTO april_fools_stores(target_user_id, creator_user_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES($1, $2, $3, $4, $5, $6)", self.target_user.id, interaction.user.id, self.skin1.uuid, self.skin2.uuid, self.skin3.uuid, self.skin4.uuid)
+        except Exception as e:
+            print_exception("Ignoring Exception in User Select View:", error=e)
+            await interaction.response.send_message(embed=ErrorEmbed(description="I was unable to save the fake Store. Try again later."), ephemeral=True)
+        else:
+            self.disable_all_items()
+            await interaction.response.edit_message(view=self)
+            await interaction.followup.send(embed=SuccessEmbed(description=f"**{self.target_user.name}** will be pranked by your fake Store on April 1!"), ephemeral=True)
+
 
     @discord.ui.button(label="Cancel", disabled=False, style=discord.ButtonStyle.red)
     async def cancel_callback(self, button, interaction):
-        for b in self.children:
-            b.disabled = True
+        self.disable_all_items()
+        embed = self.format_fake_store()
+        embed.description = "Cancelled. No Store was added."
+        await interaction.response.edit_message(embed=embed, view=self)
+        self.stop()
+
+    def format_fake_store(self):
+        tier_data = get_tier_data()
+        embed = discord.Embed(title="April Fools Prank Store", color=2829617)
+        embed.set_author(name="Cypher's Laptop",
+                         icon_url="https://cdn.discordapp.com/avatars/844489130822074390/ab663738f44bf18062f0a5f77cf4ebdd.png?size=32")
+        if self.target_user is None:
+            target_user_qualifies = False
+            user_str = "\_\_\_\_\_\_\_\_\_\_"
+        else:
+            target_user_qualifies = True
+            user_str = f"{self.target_user.name}#{self.target_user.discriminator}"
+        if self.target_user:
+            if self.target_user == self.author:
+                description = [f"I don't know why you want to show **yourself** a fake Store, but ok.\nThis fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+            elif self.target_user.bot:
+                description = [f"**You cannot give bots fake Stores.**. They can't see it anyways.", ""]
+                target_user_qualifies = False
+            else:
+                description = [f"This fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+        else:
+            description = [f"This fake Store will appear when **{user_str}** runs </store:1045171702612639836> on April Fools' Day:", ""]
+        for skin in [self.skin1, self.skin2, self.skin3, self.skin4]:
+            if skin is not None:
+                tier_emoji = " "
+                for tier in tier_data:
+                    if tier["uuid"] == skin.contentTierUUID:
+                        tier_emoji = tier["emoji"]
+                cost = f"<:vp:1045605973005434940> {comma_number(skin.cost)}" if skin.cost is not None else "<:DVB_False:887589731515392000> Not on sale"
+                skin_str = f"{tier_emoji} **{skin.displayName}** {cost}"
+            else:
+                skin_str = f"\_\_\_\_\_\_\_\_\_\_ <:vp:1045605973005434940> 0"
+            description.append(skin_str)
+        description.append("")
+        if self.target_user is None or not target_user_qualifies:
+            description.append("Select a user to prank!")
+        else:
+            description.append("Press **Confirm** to submit the fake Store.\nIt cannot be removed or edited once you submit it, but you can make new ones!")
+        embed.description = "\n".join(description)
+        return embed
+
+
+class RequestForUserID(discord.ui.Modal):
+    def __init__(self):
+        self.target_user = None
+        super().__init__(discord.ui.InputText(label="User ID goes here", placeholder="Enable Developer Mode to find someone's User ID"), title="Input User ID")
+
+    async def callback(self, interaction: discord.Interaction):
+        value = self.children[0].value.strip()
+        try:
+            us = await interaction.client.fetch_user(int(value))
+        except ValueError:
+            if "#" in self.children[0].value:
+                await interaction.response.send_message(embed=ErrorEmbed(description="It appears you've tried to enter the full Username#Discriminator (User#1234) of a user.\nUnfortunately, due to Discord's limits, we cannot identify who this user is.\n\nWe require their User ID to identify them."), ephemeral=True)
+            else:
+                await interaction.response.send_message(embed=ErrorEmbed(description="It appears you didn't enter a User ID. We need a user's ID (consisting of numbers) to identify them."), ephemeral=True)
+        except discord.NotFound:
+            await interaction.response.send_message(embed=ErrorEmbed(description=f"I couldn't find someone with the user ID {value}."), ephemeral=True)
+        else:
+            await interaction.response.send_message(embed=SuccessEmbed(description=f"Found user **{us}**!"), ephemeral=True)
+            self.target_user = us
+        self.stop()
+
+
+class UserDMSelectView(discord.ui.View):
+    def __init__(self, author, skin1, skin2, skin3, skin4):
+        self.author = author
+        self.target_user = None
+        self.skin1: GunSkin = skin1
+        self.skin2: GunSkin = skin2
+        self.skin3: GunSkin = skin3
+        self.skin4: GunSkin = skin4
+        super().__init__(timeout=15 * 60)
+
+    @discord.ui.button(label="Enter your target's User ID", )
+    async def modal_callback(self, select, interaction):
+        modal = RequestForUserID()
+        await interaction.response.send_modal(modal)
+        await modal.wait()
+        if modal.target_user is not None:
+            self.target_user = modal.target_user
+            for b in self.children:
+                if isinstance(b, discord.ui.Button) and "Confirm" in b.label:
+                    if not self.target_user.bot:
+                        b.disabled = False
+                    else:
+                        b.disabled = True
+        await interaction.edit_original_response(embed=self.format_fake_store(), view=self)
+
+    @discord.ui.button(label="Confirm", disabled=True, style=discord.ButtonStyle.green, row=1)
+    async def confirm_callback(self, button, interaction: discord.Interaction):
+        try:
+            await interaction.client.db.execute("INSERT INTO april_fools_stores(target_user_id, creator_user_id, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid) VALUES($1, $2, $3, $4, $5, $6)", self.target_user.id, interaction.user.id, self.skin1.uuid, self.skin2.uuid, self.skin3.uuid, self.skin4.uuid)
+        except Exception as e:
+            print_exception("Ignoring Exception in User Select View:", error=e)
+            await interaction.response.send_message(embed=ErrorEmbed(description="I was unable to save the fake Store. Try again later."), ephemeral=True)
+        else:
+            self.disable_all_items()
+            await interaction.response.send_message(embed=SuccessEmbed(description=f"**{self.target_user.name}** will be pranked by your fake Store on April 1!"), ephemeral=True)
+            await interaction.edit_original_response(view=self)
+
+    @discord.ui.button(label="Cancel", disabled=False, style=discord.ButtonStyle.red, row=1)
+    async def cancel_callback(self, button, interaction):
+        self.disable_all_items()
         embed = self.format_fake_store()
         embed.description = "Cancelled. No Store was added."
         await interaction.response.edit_message(embed=embed, view=self)
@@ -553,8 +670,8 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                 embed=discord.Embed(title="Skin not found", description=f"Skin `{skin4}` not found.",
                                     color=discord.Color.red()))
 
-        view = UserSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob)
-        await ctx.respond(embed=view.format_fake_store(), view=view)
+        view = UserGuildSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob) if ctx.guild is not None else UserDMSelectView(ctx.author, skin1_ob, skin2_ob, skin3_ob, skin4_ob)
+        await ctx.respond(embed=view.format_fake_store(), view=view, ephemeral=True)
 
     @discord.default_permissions(administrator=True)
     @checks.dev()
