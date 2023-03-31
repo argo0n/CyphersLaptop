@@ -589,8 +589,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                               april_fools_store.get('skin3_uuid'), april_fools_store.get('skin4_uuid')]
                 await self.client.db.execute("UPDATE april_fools_stores SET active = FALSE WHERE store_id = $1",
                                              april_fools_store.get('store_id'))
-                embed_title = ''.join(random.choice([str.upper, str.lower])(char) for char in
-                                      f"{usrn}'s <:val:1046289333344288808> VALORANT Store")
+                embed_title = f"{usrn}'s <:V_a:1091431647624319121> AMONGUSORANT Store"
             else:
                 embed_title = f"{usrn}'s <:val:1046289333344288808> VALORANT Store "
         else:
@@ -598,7 +597,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
         embeds = [discord.Embed(title=embed_title,
-                                description=f"Resets <t:{int(time.time()) + remaining}:R>", color=self.client.embed_color)]
+                                description=f"Resets <t:{int(time.time()) - (86400-remaining)}:R>", color=self.client.embed_color)]
         currency = await self.get_currency_details(user_settings.currency)
         wishlisted_skins = await self.dbManager.get_user_wishlist(ctx.author.id)
         wishlisted = 0
