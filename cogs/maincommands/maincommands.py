@@ -454,7 +454,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         }
         skins, remaining = await get_store.getNightMarket(headers, auth.user_id, riot_account.region)
         if skins is None:
-            if time.time() < 1676878310:
+            if time.time() < 1680652800:
                 embed = night_market_closed(True)
             else:
                 embed = night_market_closed(False)
