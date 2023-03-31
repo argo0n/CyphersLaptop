@@ -201,10 +201,10 @@ def skin_embed(
 
 def night_market_closed(before_nm = False):
     if before_nm:
-        return discord.Embed(title="VALORANT's Night Market will return on <t:1676509200:F>,",
-                             description="until <t:1677459540:D>.", color=0xffe8b6).set_footer(
+        return discord.Embed(title="VALORANT's Night Market will return on <t:1680652800:F>,",
+                             description="until <t:1682467199:D>.", color=0xffe8b6).set_footer(
             text="From @PlayVALORANT on Twitter").set_image(
-            url="https://cdn.discordapp.com/attachments/805604591630286918/1069156590323765278/Fnkjmg8XgAAbT6G.png")
+            url="https://pbs.twimg.com/media/Fse6UGUXsAo4WP0?format=jpg&name=medium")
     else:
         return discord.Embed(title="VALORANT's Night Market is not open!",
                              description="Follow [@PlayVALORANT on Twitter](https://twitter.com/PlayVALORANT) for updates on future Night Markets!",
