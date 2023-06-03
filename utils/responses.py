@@ -160,7 +160,6 @@ def skin_embed(
         nm_p: Optional[int] = None, nm_c: Optional[int] = None, nm_s: Optional[bool] = True
     ):
     tier_uuids = get_tier_data()
-    print(tier_uuids)
     tier = next((x for x in tier_uuids if x["uuid"] == skin.contentTierUUID), None)
     if nm_p is not None:
         cost = f"<:vp:1045605973005434940> ~~{comma_number(skin.cost)}~~ `-{nm_p}%` **{comma_number(nm_c)}**"

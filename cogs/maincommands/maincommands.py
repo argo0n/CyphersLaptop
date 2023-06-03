@@ -286,13 +286,11 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                     is_in_wishlist = True
                 else:
                     is_in_wishlist = False
-                print(sk.cost)
                 sk.discounted_p = discounted_p
                 sk.seen = is_seen
                 sk.discounted_cost = discounted_cost
                 sk.seen = is_seen
                 embeds.append(skin_embed(sk, is_in_wishlist, currency, discounted_p, discounted_cost, is_seen))
-                print(sk.cost, discounted_cost)
                 shown_embeds.append(skin_embed(sk, is_in_wishlist, currency, discounted_p, discounted_cost, True))
                 nm_skins.append(sk)
         if len(embeds) > 0 and wishlisted > 0:

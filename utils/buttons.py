@@ -81,7 +81,7 @@ class confirm(discord.ui.View):
         for b in self.children:
             if b != button:
                 b.style = discord.ButtonStyle.grey
-            print(b)
+            #print(b)
             b.disabled = True
         await interaction.response.edit_message(view=self)
         self.stop()
@@ -719,7 +719,7 @@ class SuggestionDeveloperView(discord.ui.View):
             if isinstance(item, discord.ui.Button) and item.label == "Deny":
                 self.remove_item(item)
             else:
-                print(type(item), item)
+                #print(type(item), item)
         button.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>") if button.label == "Accept" else discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
         button.label = f"Accepted by {interaction.user} for: {view.raw_result}" if button.label == "Accept" else f"Denied by {interaction.user} for: {view.raw_result}"
         button.disabled = True
@@ -764,7 +764,7 @@ class SuggestionDeveloperView(discord.ui.View):
             if isinstance(item, discord.ui.Button) and item.label == "Accept":
                 self.remove_item(item)
             else:
-                print(type(item), item)
+                #print(type(item), item)
         button.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>") if button.label == "Accept" else discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
         button.label = f"Accepted by {interaction.user} for: {view.raw_result}" if button.label == "Accept" else f"Denied by {interaction.user} for: {view.raw_result}"
         button.disabled = True
