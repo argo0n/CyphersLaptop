@@ -598,7 +598,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                         await update(f"`[{index+1}/{len(all_users)}]` Unknown user {user_id}.")
                 else:
                     try:
-                        await user.send(content=content, embeds=embeds)
+                        await user.send(content=content, embeds=embeds, view=RemindNightMarket())
                         results['success'] = results.get('success', 0) + 1
                         if modular == 1:
                             await update(f"`[{index+1}/{len(all_users)}]` {user} sent")
