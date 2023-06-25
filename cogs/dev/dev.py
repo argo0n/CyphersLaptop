@@ -35,7 +35,7 @@ from .botutils import BotUtils
 from .autostatus import AutoStatus
 from contextlib import redirect_stdout
 from discord.ext import commands, menus
-from utils.buttons import confirm
+from utils.buttons import confirm, SingleURLButton
 from utils.format import pagify, TabularData, plural, text_to_file, get_command_name, comma_number, box
 from typing import Optional, Union
 from utils.context import CLVTcontext
@@ -560,13 +560,21 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
     @commands.slash_command(name="broadcast", description="Broadcast updates.", guild_ids=[801457328346890241])
     async def broadcast(self, ctx: discord.ApplicationContext,
                         embed_json: discord.Option(str),
+                        broadcast_type: discord.Option(str, choices=["update", "youtube", "night_market"], required=True),
                         content: discord.Option(str) = None,
                         embed_json2: discord.Option(str) = None,
                         embed_json3: discord.Option(str) = None,
                         embed_json4: discord.Option(str) = None,
                         embed_json5: discord.Option(str) = None,
-                        me_only: discord.Option(bool) = True):
+                        me_only: discord.Option(bool) = True,
+                        youtube_link: discord.Option(str) = None):
         embeds = []
+        view = None
+        if broadcast_type == "night_market":
+            view = RemindNightMarket()
+        elif broadcast_type == "youtube":
+            if youtube_link is not None and len(youtube_link) > 0:
+                view = SingleURLButton(link=youtube_link, text="Watch on YouTube", emoji=discord.PartialEmoji.from_str("<:DVB_YouTube:983024271192379442>"))
         if content is not None:
             content = content.replace("\\n", "\n")
         for embed in [embed_json, embed_json2, embed_json3, embed_json4, embed_json5]:
@@ -598,7 +606,7 @@ class Developer(AutoStatus, BotUtils, Status, commands.Cog, name='dev', command_
                         await update(f"`[{index+1}/{len(all_users)}]` Unknown user {user_id}.")
                 else:
                     try:
-                        await user.send(content=content, embeds=embeds, view=RemindNightMarket())
+                        await user.send(content=content, embeds=embeds, view=view)
                         results['success'] = results.get('success', 0) + 1
                         if modular == 1:
                             await update(f"`[{index+1}/{len(all_users)}]` {user} sent")
