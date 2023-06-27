@@ -71,7 +71,7 @@ class WishListManager(commands.Cog):
     async def add(self, ctx, skin: discord.Option(str, "A VALORANT gun skin name", autocomplete=valorant_skin_autocomplete)):
         sk = await self.dbManager.get_skin_by_name_or_uuid(skin)
         if sk is None or sk is False:
-            await ctx.respond(embed=skin_not_found(skin))
+            return await ctx.respond(embed=skin_not_found(skin))
         result = await self.dbManager.add_skin_to_wishlist(ctx.author.id, sk.uuid)
         if result is True:
             await ctx.respond(embed=skin_added_to_wishlist(sk.displayName))
@@ -82,7 +82,7 @@ class WishListManager(commands.Cog):
     async def remove(self, ctx, skin: discord.Option(str, "A VALORANT gun skin name", autocomplete=get_user_wishlisted_skins)):
         sk = await self.dbManager.get_skin_by_name_or_uuid(skin)
         if sk is None or sk is False:
-            await ctx.respond(embed=skin_not_found(skin))
+            return await ctx.respond(embed=skin_not_found(skin))
         result = await self.dbManager.remove_skin_from_wishlist(ctx.author.id, sk.uuid)
         if result is True:
             await ctx.respond(embed=skin_removed_from_wishlist(sk.displayName))
