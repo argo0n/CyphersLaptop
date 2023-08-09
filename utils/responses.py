@@ -1,11 +1,12 @@
 import json
 from typing import Literal, Optional
 
+import aiohttp
 import discord
 
 from utils.format import comma_number
 from utils.helper import get_tier_data
-from utils.specialobjects import GunSkin
+from utils.specialobjects import GunSkin, Accessory, Buddy, PlayerTitle, PlayerCard, Spray
 
 
 class ErrorEmbed(discord.Embed):
@@ -150,6 +151,10 @@ def multifactor_error():
 def skin_not_found(skin_name):
     return ErrorEmbed(title="Skin Not Found", description=f"I could not find a skin with the name **{skin_name}**.", color=discord.Color.red())
 
+def accessory_not_found(name, type):
+    if type is None:
+        type = "Player Card, Player Title, Gun Buddy or Spray"
+    return ErrorEmbed(title="Accessory Not Found", description=f"I could not find a {type} with the name **{name}**.")
 
 def not_ready():
     return ErrorEmbed(title="Not Ready", description="Cypher's Laptop is still booting up. Try again in a few seconds!", color=discord.Color.red())
@@ -196,6 +201,39 @@ def skin_embed(
         embed.set_footer(text="This skin is in your wishlist!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96&quality=lossless")
         embed.color = 0xDD2F45
     return embed
+
+async def accessory_embed(accessory: Accessory):
+    embed = discord.Embed(title=accessory.name, description="", color=2829617)
+    theme = None
+    if accessory.theme_uuid:
+        async with aiohttp.ClientSession() as session:
+            response = await session.get(f"https://valorant-api.com/v1/themes/{accessory.theme_uuid}")
+            if response.status == 200:
+                data = await response.json()
+                if theme_name := data.get("data", {}).get("displayIcon"):
+                    theme = theme_name
+
+
+    if isinstance(accessory, Buddy):
+        embed.set_author(name="Coin Buddy", icon_url="https://media.discordapp.net/attachments/805604591630286918/1138737966341165127/coin_buddy.png")
+        embed.set_image(url=accessory.display_img)
+    elif isinstance(accessory, Spray):
+        embed.set_author(name="Spray",
+                         icon_url="https://media.discordapp.net/attachments/805604591630286918/1138739114624163941/spray.png")
+        embed.set_image(url=accessory.display_img)
+    elif isinstance(accessory, PlayerCard):
+        embed.set_author(name="Player Card")
+        embed.set_image(url=accessory.wide_img)
+        embed.set_thumbnail(url=accessory.display_img)
+    elif isinstance(accessory, PlayerTitle):
+        embed.set_author(name="Player Title")
+        embed.description = accessory.display_title
+    if theme:
+        embed.set_footer(text=f"This is a part of \"{theme}\",")
+    return embed
+
+
+
 
 
 def night_market_closed(before_nm = False):

@@ -168,6 +168,14 @@ class DBManager:
 
         return [Accessory.from_record(acc_r) for acc_r in accessories_raw]
 
+    async def get_accessory_by_name_or_uuid(self, query):
+        q = "SELECT * FROM accessories WHERE name = $1 OR uuid = $1"
+
+        accessory = await self.pool_pg.fetchrow(q, query)
+
+        if accessory is not None:
+            accessory = Accessory.from_record(accessory)
+        return accessory
 
 
 

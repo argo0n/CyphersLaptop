@@ -457,11 +457,21 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
     acc_type_option = discord.Option(str, description="A Player Card, Title, Spray or Gun Buddy", choices=["Player Card", "Player Title", "Spray", "Gun Buddy"], required=False, name="type")
 
     @commands.slash_command(name="accessory", description="Search for a Gun Buddy, Spray, Player Card or Player Title.")
-    async def accessory(self, ctx: discord.ApplicationContext,
-                   name: accessory_option, type: acc_type_option):
+    async def find_accessory(self, ctx: discord.ApplicationContext, name: accessory_option, accessory_type: acc_type_option = None):
         if not self.ready:
             return await ctx.respond(embed=not_ready())
-        return await ctx.respond("abc")
+        accessory = await self.dbManager.get_accessory_by_name_or_uuid(name)
+        if accessory:
+            #user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
+            #currency = await self.get_currency_details(user_settings.currency)
+            e = await accessory_embed(accessory)
+            if await self.client.is_dev(ctx.author.id):
+                c = f"`{accessory.uuid}`"
+            else:
+                c = None
+            await ctx.respond(c, embed=e)
+        else:
+            await ctx.respond(embed=accessory_not_found(name, accessory_type))
 
     @checks.dev()
     @commands.slash_command(name="update_skins_database",
