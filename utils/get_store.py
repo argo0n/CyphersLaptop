@@ -77,4 +77,5 @@ async def getBalance(headers, puuid, region):
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://pd.{region}.a.pvp.net/store/v1/wallet/{puuid}", headers=headers, json={}) as r:
             data = await r.json()
-    return data['Balances']['85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741'], data['Balances']['e59aa87c-4cbf-517a-5983-6e81511be9b7']
+    balances = data['Balances']
+    return balances['85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741'], balances['e59aa87c-4cbf-517a-5983-6e81511be9b7'], balances['85ca954a-41f2-ce94-9b45-8ca3dd39a00d'], balances['f08d4ae3-939c-4576-ab26-09ce1f23bb37']

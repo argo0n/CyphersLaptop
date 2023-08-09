@@ -212,12 +212,14 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
             "X-Riot-ClientVersion": "pbe-shipping-55-604424"
         }
-        vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
+        vp, rp, kc, fa = await get_store.getBalance(headers, auth.user_id, riot_account.region)
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
         usrn = riot_account.username if user_settings.show_username else ctx.author.name
-        embed = discord.Embed(title=f"{usrn}'s Balance",
-                              description=f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
-                              color=discord.Color.blurple())
+        embed = discord.Embed(title=f"{usrn}'s Balance", color=discord.Color.blurple())
+        embed.add_field(name="VALORANT Points", value=f"<:vp:1045605973005434940> {comma_number(vp)}", inline=True)
+        embed.add_field(name="Radianite Points", value=f"<:rp:1045991796838256640> {comma_number(rp)}", inline=True)
+        embed.add_field(name="Kingdom Credits", value=f"<:kc:1138772116058144808> {comma_number(kc)}", inline=True)
+        embed.add_field(name="Free Agents", value=f"<:fa:1138772043832250478> {comma_number(fa)}", inline=True)
         await ctx.respond(embed=embed)
 
     @commands.slash_command(name="night-market", description="Check your VALORANT Night Market.")
