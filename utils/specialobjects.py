@@ -1,5 +1,6 @@
 import json
 from typing import Any, Union
+from enum import Enum, auto
 
 import asyncpg
 
@@ -104,3 +105,55 @@ class UserSetting:
 
     async def update(self, client):
         await client.db.execute("UPDATE user_settings SET currency=$1, show_username=$2, nm_reminder=$3 WHERE user_id=$4", self.currency, self.show_username, self.nm_reminder, self.user_id)
+
+
+class AccessoryType(Enum):
+    PLAYER_CARD = "playercard"
+    BUDDY = "buddy"
+    SPRAY = "spray"
+    PLAYER_TITLE = "playertitle"
+
+class Accessory:
+    def __init__(self, uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type_):
+        self.uuid = uuid
+        self.name = name
+        self.theme_uuid = theme_uuid
+        self.display_title = display_title
+        self.display_img = display_img
+        self.wide_img = wide_img
+        self.long_img = long_img
+        self.type_ = type_
+
+    # This can be a method or a property
+    def to_tuple(self):
+        return (self.uuid, self.name, self.theme_uuid, self.display_title, self.display_img, self.wide_img, self.long_img, self.type_.name)
+
+    @staticmethod
+    def from_record(record: asyncpg.Record):
+        uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type_ = record.get("uuid"), record.get("name"), record.get("theme_uuid"), record.get("display_title"), record.get("display_img"), record.get("wide_img"), record.get("long_img"), record.get("type")
+        if type_ == AccessoryType.PLAYER_CARD.value:
+            return PlayerCard(uuid, name, theme_uuid, display_img, wide_img, long_img)
+        elif type_ == AccessoryType.BUDDY.value:
+            return Buddy(uuid, name, display_img)
+        elif type_ == AccessoryType.SPRAY.value:
+            return Spray(uuid, name, display_img)
+        elif type_ == AccessoryType.PLAYER_TITLE.value:
+            return PlayerTitle(uuid, name, display_title)
+
+
+
+class PlayerCard(Accessory):
+    def __init__(self, uuid, name, theme_uuid, display_img, wide_img, long_img):
+        super().__init__(uuid, name, theme_uuid, None, display_img, wide_img, long_img, AccessoryType.PLAYER_CARD)
+
+class Buddy(Accessory):
+    def __init__(self, uuid, name, display_img):
+        super().__init__(uuid, name, None, None, display_img, None, None, AccessoryType.BUDDY)
+
+class Spray(Accessory):
+    def __init__(self, uuid, name, display_img):
+        super().__init__(uuid, name, None, None, display_img, None, None, AccessoryType.SPRAY)
+
+class PlayerTitle(Accessory):
+    def __init__(self, uuid, name, display_name):
+        super().__init__(uuid, name, None, display_name, None, None, None, AccessoryType.PLAYER_TITLE)

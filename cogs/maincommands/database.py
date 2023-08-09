@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet
 from dotenv import load_dotenv
 
 from utils import get_store
-from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting, NightMarketGunSkin
+from utils.specialobjects import RiotUser, GunSkin, ReminderConfig, UserSetting, NightMarketGunSkin, Accessory
 import os
 
 load_dotenv()
@@ -151,6 +151,23 @@ class DBManager:
                 skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
                 remaining = result.get('time_expire') - int(time.time())
         return skin_uuids, remaining
+
+    async def get_all_accessories(self, limit=None, query=None):
+        q = "SELECT * FROM accessories"
+        values = []
+
+        if query:
+            q += " WHERE name LIKE $1"
+            values.append(f"%{query}%")  # Surrounding the search term with % signs for a LIKE query
+
+        if isinstance(limit, int):
+            q += " LIMIT $" + str(len(values) + 1)  # Adjusting the parameter index based on the number of prior parameters
+            values.append(limit)
+
+        accessories_raw = await self.pool_pg.fetch(q, *values)
+
+        return [Accessory.from_record(acc_r) for acc_r in accessories_raw]
+
 
 
 
