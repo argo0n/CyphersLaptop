@@ -126,15 +126,17 @@ class clvt(commands.Bot):
         self.prefixes[guild.id] = prefix
 
     async def update_service_status(self, service_type, upd_time, error = None):
-        if os.getenv('state') == '0':
+        if os.getenv('state') == '0': # Production
             types = {
                 "Skin Database Update": 1045986497825878047,
                 "Daily Store Reminder": 1046791173508960446,
+                "Accessories Database Update": 1138686069190180865
             }
         else:
             types = {
                 "Skin Database Update": 1046946450627629207,
-                "Daily Store Reminder": 1046946477542473830
+                "Daily Store Reminder": 1046946477542473830,
+                "Accessories Database Update": 1138686502742790195
             }
         async with aiohttp.ClientSession() as session:
             webh = discord.Webhook.from_url(os.getenv('WEBHOOK'), session=session)

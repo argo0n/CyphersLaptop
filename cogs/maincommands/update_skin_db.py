@@ -133,7 +133,94 @@ class UpdateSkinDB(commands.Cog):
                                                  "VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT(uuid) DO UPDATE SET displayName = "
                                                  "$2, cost = $3, displayIcon = $4, contenttieruuid = $5, levels = $6, chromas = $7", i.uuid,
                                                  i.displayName, i.cost, i.displayIcon, i.contentTierUUID, json.dumps(i.levels, indent=2), json.dumps(i.chromas, indent=2))
+
         except Exception as e:
             error = str(e)
-            print_exception("Ignoring exception while updating skin database, ", error)
+            print_exception("Ignoring exception while updating skin database, ", e)
         await self.client.update_service_status("Skin Database Update", upd_time, error)
+
+        """
+        Updating Accesories
+        """
+
+        try:
+            async def fetch_data(url, session):
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    return None
+
+            async with aiohttp.ClientSession() as session:
+                upd_time = int(time.time())
+                error = None
+
+                # Fetch data from APIs
+                player_cards_raw = await fetch_data("https://valorant-api.com/v1/playercards", session)
+                buddies_raw = await fetch_data("https://valorant-api.com/v1/buddies", session)
+                sprays_raw = await fetch_data("https://valorant-api.com/v1/sprays", session)
+                player_title_raw = await fetch_data("https://valorant-api.com/v1/playertitles", session)
+
+                data_to_insert = []
+
+                if player_cards_raw:
+                    for card in player_cards_raw['data']:
+                        uuid = card.get('uuid', None)
+                        name = card.get('displayName', None)
+                        theme_uuid = card.get('themeUuid', None)
+                        display_title = None
+                        display_img = card.get('displayIcon', None)
+                        wide_img = card.get('wideArt', None)
+                        long_img = card.get('largeArt', None)
+                        type = "playercard"
+
+                        if uuid and name:
+                            data_to_insert.append((uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type))
+
+                if buddies_raw:
+                    for buddy in buddies_raw['data']:
+                        uuid = buddy.get('uuid', None)
+                        name = buddy.get('displayName', None)
+                        theme_uuid = None
+                        display_title = None
+                        display_img = buddy.get('displayIcon', None)
+                        wide_img = None
+                        long_img = None
+                        type = "buddy"
+
+                        if uuid and name:
+                            data_to_insert.append((uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type))
+
+                if sprays_raw:
+                    for spray in sprays_raw['data']:
+                        uuid = spray.get('uuid', None)
+                        name = spray.get('displayName', None)
+                        theme_uuid = None
+                        display_title = None
+                        display_img = spray.get('animationPng') or spray.get('animationGif', None) or spray.get('fullTransparentIcon') or spray.get("displayIcon")
+                        wide_img = None
+                        long_img = None
+                        type = "spray"
+
+                        if uuid and name:
+                            data_to_insert.append((uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type))
+
+                if player_title_raw:
+                    for title in player_title_raw['data']:
+                        uuid = title.get('uuid', None)
+                        name = title.get('displayName', None)
+                        theme_uuid = None
+                        display_title = title.get('titleText', None)
+                        display_img = None
+                        wide_img = None
+                        long_img = None
+                        type = "playertitle"
+
+                        if uuid and name:
+                            data_to_insert.append((uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type))
+
+                await self.client.db.executemany("INSERT INTO accessories(uuid, name, theme_uuid, display_title, display_img, wide_img, long_img, type) VALUES($1, $2, $3, $4, $5, $6, $7, $8) ON CONFLICT(uuid) DO UPDATE SET name = $2, theme_uuid = $3, display_title = $4, display_img = $5, wide_img = $6, long_img = $7, type = $8", data_to_insert)
+
+        except Exception as e:
+            error = str(e)
+            print_exception("Ignoring exception while updating Accessories database, ", e)
+        await self.client.update_service_status("Accessories Database Update", upd_time, error)
