@@ -9,7 +9,7 @@ from discord.ext import commands
 from main import clvt
 from utils import riot_authorization, get_store, checks
 from utils.helper import get_region_code
-from utils.specialobjects import GunSkin
+from utils.specialobjects import GunSkin, PlayerCard, PlayerTitle, Spray, Buddy
 from utils.time import humanize_timedelta
 from .account_management import AccountManagement
 from .database import DBManager
@@ -134,6 +134,31 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             return results[:25]
         else:
             return [s.displayName for s in sk[:25]]
+
+    async def valorant_accessory_autocomplete(self, ctx: discord.AutocompleteContext):
+        if not self.ready:
+            return ["Cypher's Laptop is still booting up. Try again in a few seconds!"]
+        ac = await self.dbManager.get_all_accessories()
+        selected_type = ctx.options.get("type")
+        print(selected_type)
+        if selected_type == "Player Card":
+            ac = [a for a in ac if isinstance(a, PlayerCard)]
+        elif selected_type == "Player Title":
+            ac = [a for a in ac if isinstance(a, PlayerTitle)]
+        elif selected_type == "Spray":
+            ac = [a for a in ac if isinstance(a, Spray)]
+        elif selected_type == "Gun Buddy":
+            ac = [a for a in ac if isinstance(a, Buddy)]
+        else:
+            print("No type filter")
+        if len(ctx.value) > 0:
+            results = []
+            for a in ac:
+                if ctx.value.lower() in a.name.lower():
+                    results.append(a.name)
+            return results[:25]
+        else:
+            return [a.name for a in ac[:25]]
 
     skin_option = discord.Option(str, description="Skin name", autocomplete=valorant_skin_autocomplete)
 
@@ -427,6 +452,16 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             await ctx.respond(c, embed=skin_embed(skin, False, currency), view=view)
         else:
             await ctx.respond(embed=skin_not_found(name))
+
+    accessory_option = discord.Option(str, description="Accessory name", autocomplete=valorant_accessory_autocomplete)
+    acc_type_option = discord.Option(str, description="A Player Card, Title, Spray or Gun Buddy", choices=["Player Card", "Player Title", "Spray", "Gun Buddy"], required=False, name="type")
+
+    @commands.slash_command(name="accessory", description="Search for a Gun Buddy, Spray, Player Card or Player Title.")
+    async def accessory(self, ctx: discord.ApplicationContext,
+                   name: accessory_option, type: acc_type_option):
+        if not self.ready:
+            return await ctx.respond(embed=not_ready())
+        return await ctx.respond("abc")
 
     @checks.dev()
     @commands.slash_command(name="update_skins_database",
