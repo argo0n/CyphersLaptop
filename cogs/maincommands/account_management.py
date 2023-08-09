@@ -67,64 +67,6 @@ class AccountManagement(commands.Cog):
         self.dbManager: DBManager = DBManager(self.client.db)
         self.ready = False
 
-    @commands.slash_command(name="balance", description="View your VALORANT points and Radianite balance.")
-    async def balance(self, ctx: discord.ApplicationContext):
-        if not self.ready:
-            return await ctx.respond(embed=not_ready(), ephemeral=True)
-        riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
-        if riot_account:
-            await ctx.defer()
-        else:
-            return await ctx.respond(embed=no_logged_in_account(), ephemeral=True)
-        try:
-            auth = riot_authorization.RiotAuth()
-            await auth.authorize(riot_account.username, riot_account.password)
-        except riot_authorization.Exceptions.RiotAuthenticationError:
-            await ctx.respond(embed=authentication_error())
-            print("Authentication error")
-            return
-        except riot_authorization.Exceptions.RiotRatelimitError:
-            await ctx.respond(embed=rate_limit_error())
-            print("Rate limited")
-            return
-        except riot_authorization.Exceptions.RiotMultifactorError:
-            # No multifactor provided check
-            v = EnterMultiFactor()
-            await ctx.respond(embed=multifactor_detected(), view=v)
-            await v.wait()
-            if v.code is None:
-                return
-            try:
-                auth = riot_authorization.RiotAuth()
-                await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
-            except riot_authorization.Exceptions.RiotAuthenticationError:
-                await v.modal.interaction.edit_original_response(embed=authentication_error(), delete_after=30.0)
-                print("Authentication error")
-                return
-            except riot_authorization.Exceptions.RiotRatelimitError:
-                await v.modal.interaction.edit_original_response(embed=rate_limit_error(), delete_after=30.0)
-                print("Rate limited")
-                return
-            except riot_authorization.Exceptions.RiotMultifactorError:
-                await v.modal.interaction.edit_original_response(embed=multifactor_error(), delete_after=30.0)
-                print("Multifactor error")
-                return
-            await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
-        headers = {
-            "Authorization": f"Bearer {auth.access_token}",
-            "User-Agent": riot_account.username,
-            "X-Riot-Entitlements-JWT": auth.entitlements_token,
-            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
-        }
-        vp, rp = await get_store.getBalance(headers, auth.user_id, riot_account.region)
-        user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
-        usrn = riot_account.username if user_settings.show_username else ctx.author.name
-        embed = discord.Embed(title=f"{usrn}'s Balance",
-                              description=f"<:vp:1045605973005434940> {comma_number(vp)}\n<:rp:1045991796838256640> {comma_number(rp)}",
-                              color=discord.Color.blurple())
-        await ctx.respond(embed=embed)
-
     @commands.slash_command(name="login",
                             description="Log in with your Riot account. Your password is encrypted and stored securely when you log in.")
     async def login(self, ctx: discord.ApplicationContext,
