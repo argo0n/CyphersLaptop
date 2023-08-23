@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from main import clvt
 from utils import riot_authorization, get_store, checks
+from utils.errors import WeAreStillDisabled
 from utils.helper import get_region_code
 from utils.specialobjects import GunSkin
 from utils.time import humanize_timedelta
@@ -79,6 +80,9 @@ class AccountManagement(commands.Cog):
                     ):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            raise WeAreStillDisabled()
         reg_code = get_region_code(region)
         existing_logged_in = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if existing_logged_in:
@@ -131,6 +135,9 @@ class AccountManagement(commands.Cog):
                               password: discord.Option(str, "Your new Riot password")):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            raise WeAreStillDisabled()
         c = confirm(ctx, self.client, 30.0)
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:

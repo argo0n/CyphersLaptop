@@ -8,6 +8,7 @@ from discord.ext import commands, tasks
 from cogs.maincommands.database import DBManager
 from main import clvt
 from utils.buttons import ThumbnailToImageOnly
+from utils.errors import WeAreStillDisabled
 from utils.format import box
 from utils.responses import *
 from utils.specialobjects import *
@@ -157,6 +158,9 @@ class StoreReminder(commands.Cog):
     async def reminder_loop(self):
         todays_date = discord.utils.utcnow().date()
         reminders = await self.dbManager.fetch_reminders()
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            return
         for reminder in reminders:
             try:
                 if not reminder.enabled:

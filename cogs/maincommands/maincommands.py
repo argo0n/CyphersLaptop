@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from main import clvt
 from utils import riot_authorization, get_store, checks
+from utils.errors import WeAreStillDisabled
 from utils.helper import get_region_code
 from utils.specialobjects import GunSkin, PlayerCard, PlayerTitle, Spray, Buddy
 from utils.time import humanize_timedelta
@@ -166,6 +167,9 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
     async def balance(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            raise WeAreStillDisabled()
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()
@@ -226,6 +230,9 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
     async def night_market(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            raise WeAreStillDisabled()
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()
@@ -340,6 +347,9 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
     async def store(self, ctx: discord.ApplicationContext):
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
+        limited = await get_store.check_limited_function(self.client)
+        if ctx.author.id != 650647680837484556 and limited is True:
+            raise WeAreStillDisabled()
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()

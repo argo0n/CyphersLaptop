@@ -2,10 +2,12 @@ import contextlib
 
 import discord
 from datetime import datetime
+
+from utils.responses import ErrorEmbed
 from utils.time import humanize_timedelta
 from discord.ext import commands
 from utils.format import print_exception
-from utils.errors import ArgumentBaseError
+from utils.errors import ArgumentBaseError, WeAreStillDisabled
 import json
 import asyncio
 
@@ -79,6 +81,11 @@ class ErrorHandler(commands.Cog):
             if isinstance(error_original, commands.MissingPermissions):
                 handled = True
                 await send_error("Oops!, looks like you don't have enough permission to use this command.", delete_after=5)
+            elif isinstance(error_original, WeAreStillDisabled):
+                handled = True
+                await send_error(embed=ErrorEmbed(
+                    title="Cypher's Laptop doesn't work (for now)",
+                    description="A method that Cypher's Laptop uses to communicate with Riot Games doesn't work. \nAs of now, we are stlil unable to communicate with Riot.").set_footer(text="Your action was not completed."))
 
         if handled is not True:
             traceback_error = print_exception(f'Ignoring exception in command {ctx.command}:', error)
