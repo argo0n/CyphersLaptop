@@ -89,9 +89,7 @@ class SelectSetting(discord.ui.Select):
         self.respond_interaction: discord.Interaction = None
         self.selected = None
         options = [
-            discord.SelectOption(label="Enable/Disable", value="enabled", description="Turn on or off your daily Store reminder.", default=True),
-            discord.SelectOption(label="Show store immediately", value="show_immediately", description="If disabled, you'll press a button to view the store instead of seeing it immediately."),
-            discord.SelectOption(label="Show as a picture", value="picture_mode", description="If enabled, your skins will be shown together in a picture.")
+            discord.SelectOption(label="Enable/Disable", value="enabled", description="Turn on or off your daily Store reminder.", default=True)
         ]
         super().__init__(placeholder="Choose a setting to configure", min_values=1, max_values=1, options=options)
 
@@ -110,7 +108,7 @@ class SelectSetting(discord.ui.Select):
 
 
 enable_disable_embed = discord.Embed(title="Enable/Disable reminders", description="Enable/disable reminders for checking your VALORANT Store after it resets.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046774650119671828/CLreminders.png")
-show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
+show_immediately_embed = discord.Embed(title="Show store immediately", description="When your Store reminder is sent, view your store immediately or click a button to see your skins.\n**This feature is unavailable at the moment.**", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046776544372195388/CLnobutton.png")
 picture_mode_embed = discord.Embed(title="Show as a picture", description="Show your skins as a picture or in 4 embeds.", color=2829617).set_image(url="https://cdn.discordapp.com/attachments/1045172059002650715/1046778074521403463/CLpicture.png")
 
 
