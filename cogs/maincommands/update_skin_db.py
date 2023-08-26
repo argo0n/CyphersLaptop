@@ -24,6 +24,9 @@ class UpdateSkinDB(commands.Cog):
     async def update_skin_db(self):
         upd_time = int(time.time())
         error = None
+        limited = await get_store.check_limited_function(self.client)
+        if limited is True:
+            return
         try:
             riot_account = await self.dbManager.get_user_by_user_id(0)
             if riot_account:
@@ -45,7 +48,7 @@ class UpdateSkinDB(commands.Cog):
                     "User-Agent": riot_account.username,
                     "X-Riot-Entitlements-JWT": auth.entitlements_token,
                     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-                    "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+                    "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
                 }
                 raw_offers = await get_store.getRawOffers(headers, riot_account.region)
                 all_skins = await get_store.getAllSkins()

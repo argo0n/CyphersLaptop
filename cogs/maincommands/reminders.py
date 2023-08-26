@@ -210,7 +210,7 @@ class StoreReminder(commands.Cog):
                     "User-Agent": riot_account.username,
                     "X-Riot-Entitlements-JWT": auth.entitlements_token,
                     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-                    "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+                    "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
                 }
                 skin_uuids, remaining = await self.dbManager.get_store(user.id, riot_account.username, headers, auth.user_id, riot_account.region)
                 user_wishlist = await self.dbManager.get_user_wishlist(user.id)

@@ -214,7 +214,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             "User-Agent": riot_account.username,
             "X-Riot-Entitlements-JWT": auth.entitlements_token,
             "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+            "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
         }
         vp, rp, kc, fa = await get_store.getBalance(headers, auth.user_id, riot_account.region)
         user_settings = await self.dbManager.fetch_user_settings(ctx.author.id)
@@ -290,7 +290,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             "User-Agent": riot_account.username,
             "X-Riot-Entitlements-JWT": auth.entitlements_token,
             "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+            "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
         }
         skins, remaining = await get_store.getNightMarket(headers, auth.user_id, riot_account.region)
         if skins is None:
@@ -410,7 +410,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
                 "User-Agent": riot_account.username,
                 "X-Riot-Entitlements-JWT": auth.entitlements_token,
                 "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-                "X-Riot-ClientVersion": "pbe-shipping-55-604424"
+                "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
             }
             try:
                 skin_uuids, remaining = await self.dbManager.get_store(ctx.author.id, riot_account.username, headers, auth.user_id, riot_account.region)

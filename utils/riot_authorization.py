@@ -1,6 +1,7 @@
 # Sourced and modified code from python-riot-auth by floxay
 # https://github.com/floxay/python-riot-auth
 
+import contextlib
 import ctypes
 import json
 import ssl
@@ -106,15 +107,18 @@ class RiotAuth:
         addr = id(ssl_ctx) + sys.getsizeof(object())
         ssl_ctx_addr = ctypes.cast(addr, ctypes.POINTER(ctypes.c_void_p)).contents
 
+        libssl: Optional[ctypes.CDLL] = None
         if sys.platform.startswith("win32"):
-            libssl = ctypes.CDLL("libssl-1_1.dll")
+            for dll_name in ("libssl-1_1.dll", "libssl-1_1-x64.dll"):
+                with contextlib.suppress(FileNotFoundError, OSError):
+                    libssl = ctypes.CDLL(dll_name)
+                    break
         elif sys.platform.startswith(("linux", "darwin")):
             # noinspection PyProtectedMember
             libssl = ctypes.CDLL(ssl._ssl.__file__)
-        else:
-            raise NotImplementedError(
-                "Only Windows (win32), Linux (linux) and macOS (darwin) are supported."
-            )
+            if libssl is None:
+                raise NotImplementedError(
+                    "Failed to load libssl. Your platform or distribution might be unsupported, please open an issue.")
 
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -185,9 +189,10 @@ class RiotAuth:
             # noinspection SpellCheckingInspection
             headers = {
                 "Accept-Encoding": "deflate, gzip, zstd",
-                "user-agent": self.RIOT_CLIENT_USER_AGENT % "rso-auth",
+                "user-agent": "ShooterGame/11 Windows/10.0.22621.1.768.64bit",
                 "Cache-Control": "no-cache",
                 "Accept": "application/json",
+                "X-Riot-ClientVersion": "release-07.03-shipping-11-953184"
             }
 
             # region Begin auth/Reauth
