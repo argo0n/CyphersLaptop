@@ -5,9 +5,10 @@ from datetime import timedelta, datetime
 import discord
 from discord.ext import commands, tasks
 
+
 from cogs.maincommands.database import DBManager
 from main import clvt
-from utils.buttons import ThumbnailToImageOnly
+from utils.buttons import ThumbnailToImageOnly, EnterMultiFactor
 from utils.errors import WeAreStillDisabled
 from utils.format import box
 from utils.responses import *
@@ -21,23 +22,93 @@ class ViewStoreFromDaily(discord.ui.Button):
         super().__init__(label="View Store", custom_id="view_storev1")
 
     async def callback(self, interaction: discord.Interaction):
-        date_asstr = discord.utils.utcnow().strftime("%A, %d %B %y")
-        riot_account: RiotUser = await self.DBManager.get_user_by_user_id(interaction.user.id)
         message_date = interaction.message.created_at.date()
+        date_asstr = message_date.strftime("%A, %d %B %y")
+        riot_account: RiotUser = await self.DBManager.get_user_by_user_id(interaction.user.id)
+        if riot_account is False:
+            return await interaction.response.send_message(embed=ErrorEmbed(description="You do not have a Riot Games account logged in in Cypher's Laptop."))
+
         skins, remaining = await self.DBManager.get_store(interaction.user.id, riot_account.username, None, None, None, message_date)
         if skins is None:
-            await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
+            now_date = discord.utils.utcnow().date()
+            if now_date != message_date:
+                return await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
+            else:
+                try:
+                    auth = riot_authorization.RiotAuth()
+                    await auth.authorize(riot_account.username, riot_account.password)
+                except riot_authorization.Exceptions.RiotAuthenticationError:
+                    await interaction.response.send_message(embed=authentication_error())
+                    print("Authentication error")
+                    return
+                except riot_authorization.Exceptions.RiotRatelimitError:
+                    await interaction.response.send_message(embed=rate_limit_error())
+                    print("Rate limited")
+                    return
+                except riot_authorization.Exceptions.RiotMultifactorError:
+                    # No multifactor provided check
+                    v = EnterMultiFactor()
+                    m = await interaction.response.send_message(embed=multifactor_detected(), view=v, ephemeral=True)
+                    await v.wait()
+                    b: discord.ui.Button = v.children[0]
+                    if v.code is None:
+                        return
+                    try:
+                        auth = riot_authorization.RiotAuth()
+                        await auth.authorize(riot_account.username, riot_account.password, multifactor_code=v.code)
+                    except riot_authorization.Exceptions.RiotAuthenticationError:
+                        b.label = "Authentication failed"
+                        b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                        await m.edit_original_response(view=v)
+                        await interaction.response.send_message(embed=authentication_error(), delete_after=30.0)
+                        print("Authentication error")
+                        return
+                    except riot_authorization.Exceptions.RiotRatelimitError:
+                        b.label = "Authentication failed"
+                        b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                        await m.edit_original_response(view=v)
+                        await interaction.response.send_message(embed=rate_limit_error(), delete_after=30.0)
+                        print("Rate limited")
+                        return
+                    except riot_authorization.Exceptions.RiotMultifactorError:
+                        b.label = "Authentication failed"
+                        b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
+                        await m.edit_original_response(view=v)
+                        await interaction.response.send_message(embed=multifactor_error(), delete_after=30.0)
+                        print("Multifactor error")
+                        return
+                    # await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
+                    b.label = "Authentication Success"
+                    b.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>")
+                    await m.edit_original_response(view=v)
+                headers = {
+                    "Authorization": f"Bearer {auth.access_token}",
+                    "User-Agent": riot_account.username,
+                    "X-Riot-Entitlements-JWT": auth.entitlements_token,
+                    "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+                    "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
+                }
+                try:
+                    skins, remaining = await self.DBManager.get_store(interaction.user.id, riot_account.username, headers,
+                                                                           auth.user_id, riot_account.region, None)
+                except KeyError:
+                    error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.",
+                                                description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!",
+                                                embed=discord.Color.red())
+                    return await interaction.response.send_message(embed=error_embed)
+                print("Store fetch successful")
         wishlisted = 0
         wishlist = await self.DBManager.get_user_wishlist(interaction.user.id)
         user_settings = await self.DBManager.fetch_user_settings(interaction.user.id)
+        embed_description = date_asstr if message_date != discord.utils.utcnow().date() else f"Resets <t:{int(time.time()) + remaining}:R>"
         if riot_account:
             if user_settings.show_username:
-                username = riot_account.username
+                username = f"{riot_account.username}'s"
             else:
-                username = interaction.user.name
-            base_embed = discord.Embed(title=f"{username}'s <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
+                username = f"{interaction.user.name}'s"
         else:
-            base_embed = discord.Embed(title=f"Your <:val:1046289333344288808> VALORANT Store", description=date_asstr, color=interaction.client.embed_color)
+            username = "Your"
+        base_embed = discord.Embed(title=f"{username} <:val:1046289333344288808> VALORANT Store", description=embed_description, color=interaction.client.embed_color)
         embeds = [base_embed]
         currency = await self.cog.get_currency_details(user_settings.currency)
         for skin in skins:
@@ -50,7 +121,12 @@ class ViewStoreFromDaily(discord.ui.Button):
             embeds.append(skin_embed(sk, is_wishlist, currency))
         if wishlisted > 0:
             embeds[0].set_footer(text=f"You have {wishlisted} skins wishlisted in this store!", icon_url="https://cdn.discordapp.com/emojis/1046281227142975538.webp?size=96")
-        await interaction.response.send_message(embeds=embeds, ephemeral=True, view=ThumbnailToImageOnly())
+        if interaction.response.is_done():
+            method = interaction.followup.send
+        else:
+            method = interaction.response.send_message
+
+        await method(embeds=embeds, ephemeral=True, view=ThumbnailToImageOnly())
 
 
 class EnableDisable(discord.ui.Button):
@@ -167,85 +243,18 @@ class StoreReminder(commands.Cog):
                     user = await self.client.fetch_user(reminder.user_id)
                 except discord.NotFound:
                     continue
-                riot_account = await self.dbManager.get_user_by_user_id(user.id)
-                if riot_account is False:
-                    reminder.enabled = False
-                    await reminder.update(self.client)
-                    try:
-                        await user.send(embeds=reminder_disabled("no_account"))
-                    except discord.Forbidden:
-                        pass
-                    continue
+                notif_embed, actual_embed = store_here(False)
+                # if reminder.show_immediately is not True: # show a button in the message, disabled for now as it is irrelevant
                 try:
-                    auth = riot_authorization.RiotAuth()
-                    await auth.authorize(riot_account.username, riot_account.password)
-                except riot_authorization.Exceptions.RiotAuthenticationError:
+                    m = await user.send(embed=notif_embed, view=ViewStoreFromReminder(self.dbManager, self))
+                    await m.edit(embed=actual_embed)
+                except discord.Forbidden:
                     reminder.enabled = False
                     await reminder.update(self.client)
-                    try:
-                        await user.send(embeds=reminder_disabled("authorization_failed"))
-                    except discord.Forbidden:
-                        pass
-                    continue
-                except riot_authorization.Exceptions.RiotRatelimitError:
-                    reminder.enabled = False
-                    await reminder.update(self.client)
-                    try:
-                        await user.send(embeds=reminder_disabled("rate_limit"))
-                    except discord.Forbidden:
-                        pass
-                    continue
-                except riot_authorization.Exceptions.RiotMultifactorError:
-                    reminder.enabled = False
-                    await reminder.update(self.client)
-                    try:
-                        await user.send(embeds=reminder_disabled("mfa_enabled"))
-                    except discord.Forbidden:
-                        pass
-                    continue
-                headers = {
-                    "Authorization": f"Bearer {auth.access_token}",
-                    "User-Agent": riot_account.username,
-                    "X-Riot-Entitlements-JWT": auth.entitlements_token,
-                    "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-                    "X-Riot-ClientVersion": "release-07.01-shipping-28-925799"
-                }
-                skin_uuids, remaining = await self.dbManager.get_store(user.id, riot_account.username, headers, auth.user_id, riot_account.region)
-                user_wishlist = await self.dbManager.get_user_wishlist(user.id)
-                skin_in_wishlist = any(skin_uuid in skin_uuids for skin_uuid in user_wishlist)
-                notif_embed, actual_embed = store_here(skin_in_wishlist)
-                if user.id in [898038299631951922, 650647680837484556]:
-                    message = await self.client.db.fetchval("SELECT message FROM duck_messages WHERE send_date = $1", todays_date)
-                    if message is not None:
-                        actual_embed.set_footer(text=message + " • " + actual_embed.footer.text)
-                if reminder.show_immediately is not True: # show a button in the message
-                    try:
-                        m = await user.send(embed=notif_embed, view=ViewStoreFromReminder(self.dbManager, self))
-                        await m.edit(embed=actual_embed)
-                    except discord.Forbidden:
-                        reminder.enabled = False
-                        await reminder.update(self.client)
-                    except Exception as e:
-                        print(e)
-                else: # show the skins immediately
-                    try:
-                        m = await user.send(embed=notif_embed)
-                    except discord.Forbidden:
-                        pass
-                    except Exception as e:
-                        pass
-                    else:
-                        copy.copy(actual_embed)
-                        embeds = [actual_embed]
-                        user_settings = await self.dbManager.fetch_user_settings(user.id)
-                        currency = await self.get_currency_details(user_settings.currency)
-                        for skin_uuid in skin_uuids:
-                            sk = await self.dbManager.get_skin_by_uuid(skin_uuid)
-                            embeds.append(skin_embed(sk, sk.uuid in user_wishlist, currency))
-                        await m.edit(embeds=embeds, view=ThumbnailToImageOnly())
+                except Exception as e:
+                    print(e)
             except Exception as e:
                 await self.client.error_channel.send(f"Error while processing store for {reminder.user_id}:\n{box(str(e), lang='py')}")
-        await self.client.db.execute("DELETE FROM duck_messages WHERE send_date=$1", todays_date)
         await self.client.update_service_status("Daily Store Reminder", round(time.time()))
 
     @reminder_loop.before_loop
