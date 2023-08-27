@@ -16,7 +16,7 @@ from .account_management import AccountManagement
 from .database import DBManager
 from utils.responses import *
 from utils.buttons import confirm, SingleURLButton, ThumbnailToImageOnly, ThumbnailAndWishlist, ThumbWishViewVariants, \
-    NightMarketView
+    NightMarketView, EnterMultiFactor
 import os
 from dotenv import load_dotenv
 
@@ -25,46 +25,6 @@ from .wishlist import WishListManager
 from .reminders import StoreReminder, ViewStoreFromReminder
 
 load_dotenv()
-
-
-class MultiFactorModal(discord.ui.Modal):
-    def __init__(self):
-        self.interaction: discord.Interaction = None
-        super().__init__(title="Enter MFA Code", timeout=180.0)
-        self.add_item(
-            discord.ui.InputText(label="Enter your MFA Code", placeholder="123456", min_length=6, max_length=6)
-        )
-
-    async def callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        #await interaction.response.send_message(embed=authenticating(True))
-        self.interaction = interaction
-        self.stop()
-
-class EnterMultiFactor(discord.ui.View):
-    def __init__(self):
-        self.code = None
-        self.modal = MultiFactorModal()
-        super().__init__(timeout=180, disable_on_timeout=True)
-
-    @discord.ui.button(label="Enter MFA Code", style=discord.ButtonStyle.green)
-    async def callback(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(self.modal)
-        await self.modal.wait()
-        button.disabled = True
-        button.emoji = discord.PartialEmoji.from_str("<a:CL_Loading:1081263238202794196>")
-        button.label = "Authenticating code..."
-        button.style = discord.ButtonStyle.grey
-        await interaction.message.edit(view=self)
-        self.code = self.modal.children[0].value
-        self.stop()
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.message.interaction is not None:
-            if interaction.message.interaction.user.id == interaction.user.id:
-                return True
-        await interaction.response.send_message("This is not for you!", ephemeral=True)
-        return False
 
 
 class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkinDB, commands.Cog):

@@ -39,29 +39,6 @@ class MultiFactorModal(discord.ui.Modal):
         self.stop()
 
 
-class EnterMultiFactor(discord.ui.View):
-    def __init__(self):
-        self.code = None
-        self.modal = MultiFactorModal()
-        super().__init__(timeout=180, disable_on_timeout=True)
-
-    @discord.ui.button(label="Enter MFA Code", style=discord.ButtonStyle.green)
-    async def callback(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_modal(self.modal)
-        await self.modal.wait()
-        button.disabled = True
-        await interaction.message.edit(view=self)
-        self.code = self.modal.children[0].value
-        self.stop()
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.message.interaction is not None:
-            if interaction.message.interaction.user.id == interaction.user.id:
-                return True
-        await interaction.response.send_message("This is not for you!", ephemeral=True)
-        return False
-
-
 class AccountManagement(commands.Cog):
     def __init__(self, client):
         self.client: clvt = client
