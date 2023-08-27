@@ -1,7 +1,7 @@
 import datetime
 import time
 from typing import Optional
-
+import discord
 import asyncpg
 from cryptography.fernet import Fernet
 from dotenv import load_dotenv
@@ -135,7 +135,7 @@ class DBManager:
         if date is not None:
             result = await self.pool_pg.fetchrow("SELECT * FROM cached_stores WHERE store_date = $1 AND username = $2", date, username)
             if result is None:
-                return None
+                return None, None
             else:
                 skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
                 remaining = result.get('time_expire') - int(time.time())
@@ -146,7 +146,7 @@ class DBManager:
                     return None, None
                 skin_uuids, remaining = await get_store.getStore(headers, user_id, region)
                 time_expire = int(time.time()) + remaining
-                await self.pool_pg.execute("INSERT INTO cached_stores (user_id, username, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid, time_expire) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", disc_userid, username, datetime.date.today(), skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3], time_expire)
+                await self.pool_pg.execute("INSERT INTO cached_stores (user_id, username, store_date, skin1_uuid, skin2_uuid, skin3_uuid, skin4_uuid, time_expire) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)", disc_userid, username, discord.utils.utcnow().date(), skin_uuids[0], skin_uuids[1], skin_uuids[2], skin_uuids[3], time_expire)
             else:
                 skin_uuids = [result.get("skin1_uuid"), result.get("skin2_uuid"), result.get("skin3_uuid"), result.get("skin4_uuid")]
                 remaining = result.get('time_expire') - int(time.time())
