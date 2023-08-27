@@ -111,7 +111,7 @@ def store_here(skin_in_wishlist):
 
 
 def no_cached_store():
-    return ErrorEmbed(title="Daily Store Error", description="I was unable to fetch your daily VALORANT Store from our database. You can still try running </store:1045171702612639836> to check your Store.")
+    return ErrorEmbed(title="No Store found for this day", description="There was no Store fetched by Cypher's Laptop on this day; as such I am unable to show it to you.")
 
 
 # ------- Riot Authentication Errors/Responses -------
