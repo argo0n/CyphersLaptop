@@ -20,7 +20,7 @@ class UpdateSkinDB(commands.Cog):
         self.dbManager: DBManager = DBManager(self.client.db)
 
 
-    @tasks.loop(hours=1)
+    @tasks.loop(hours=18)
     async def update_skin_db(self):
         upd_time = int(time.time())
         error = None
