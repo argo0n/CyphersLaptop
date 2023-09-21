@@ -34,21 +34,22 @@ class ViewStoreFromDaily(discord.ui.Button):
             if now_date != message_date:
                 return await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
             else:
+                await interaction.response.defer(ephemeral=True, invisible=False)
                 try:
                     auth = riot_authorization.RiotAuth()
                     await auth.authorize(riot_account.username, riot_account.password)
                 except riot_authorization.Exceptions.RiotAuthenticationError:
-                    await interaction.response.send_message(embed=authentication_error())
+                    await interaction.followup.send(embed=authentication_error())
                     print("Authentication error")
                     return
                 except riot_authorization.Exceptions.RiotRatelimitError:
-                    await interaction.response.send_message(embed=rate_limit_error())
+                    await interaction.followup.send(embed=rate_limit_error())
                     print("Rate limited")
                     return
                 except riot_authorization.Exceptions.RiotMultifactorError:
                     # No multifactor provided check
                     v = EnterMultiFactor()
-                    m = await interaction.response.send_message(embed=multifactor_detected(), view=v, ephemeral=True)
+                    m = await interaction.followup.send(embed=multifactor_detected(), view=v, ephemeral=True, wait=True)
                     await v.wait()
                     b: discord.ui.Button = v.children[0]
                     if v.code is None:
@@ -59,28 +60,28 @@ class ViewStoreFromDaily(discord.ui.Button):
                     except riot_authorization.Exceptions.RiotAuthenticationError:
                         b.label = "Authentication failed"
                         b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
-                        await m.edit_original_response(view=v)
-                        await interaction.response.send_message(embed=authentication_error(), delete_after=30.0)
+                        await m.edit(view=v)
+                        await interaction.followup.send(embed=authentication_error(), ephemeral=True)
                         print("Authentication error")
                         return
                     except riot_authorization.Exceptions.RiotRatelimitError:
                         b.label = "Authentication failed"
                         b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
-                        await m.edit_original_response(view=v)
-                        await interaction.response.send_message(embed=rate_limit_error(), delete_after=30.0)
+                        await m.edit(view=v)
+                        await interaction.followup.send(embed=rate_limit_error(), ephemeral=True)
                         print("Rate limited")
                         return
                     except riot_authorization.Exceptions.RiotMultifactorError:
                         b.label = "Authentication failed"
                         b.emoji = discord.PartialEmoji.from_str("<:CL_False:1075296226620223499>")
-                        await m.edit_original_response(view=v)
-                        await interaction.response.send_message(embed=multifactor_error(), delete_after=30.0)
+                        await m.edit(view=v)
+                        await interaction.followup.send(embed=multifactor_error(), ephemeral=True)
                         print("Multifactor error")
                         return
                     # await v.modal.interaction.edit_original_response(embed=authentication_success(), delete_after=30.0)
                     b.label = "Authentication Success"
                     b.emoji = discord.PartialEmoji.from_str("<:CL_True:1075296198598066238>")
-                    await m.edit_original_response(view=v)
+                    await m.edit(view=v)
                 headers = {
                     "Authorization": f"Bearer {auth.access_token}",
                     "User-Agent": riot_account.username,
@@ -95,7 +96,11 @@ class ViewStoreFromDaily(discord.ui.Button):
                     error_embed = discord.Embed(title="Cypher's Laptop was unable to fetch your store.",
                                                 description="Cypher's Laptop contacted the Riot Games API, and Riot Games responded but did not provide any information about your store. this might be due to an [ongoing login issue](https://status.riotgames.com/valorant?regionap&locale=en_US).\n\nNontheless, this is a known issue and the developer is monitoring it. Try again in a few minutes to check your store!",
                                                 embed=discord.Color.red())
-                    return await interaction.response.send_message(embed=error_embed)
+                    if interaction.response.is_done():
+                        method = await interaction.followup.send
+                    else:
+                        method = await interaction.response.send_message
+                    return method(embed=error_embed)
                 print("Store fetch successful")
         wishlisted = 0
         wishlist = await self.DBManager.get_user_wishlist(interaction.user.id)
