@@ -140,8 +140,8 @@ def rate_limit_error():
 
 
 def multifactor_detected():
-    e = ErrorEmbed(title="Multifactor Authentication unavailable", description="Cypher's Laptop is unable to access stores/night markets for accounts that have **Multi Factor Authentication (MFA) enabled**.\n\nRiot Games has pushed a change that, for now, prevents many store checkers including Cypher's Laptop from sending the email containing your MFA code to you.")
-    e.add_field(name="\u200b", value="The developer of Cypher's Laptop sincerely apologises for any inconvience this might cause to you. If you'd want to continue checking your store we __recommend you disable MFA__ if it's possible for you to do so.")
+    e = ErrorEmbed(title="Multifactor Authentication unavailable", description="Cypher's Laptop is unable to access stores/night markets for accounts with **Multi Factor Authentication (MFA) enabled**.\n\nRiot Gamespushed a change that, for now, prevents many store checkers (including Cypher's Laptop) from sending the email containing your MFA code to you. Due to this, we cannot verify your account if it has MFA enabled.")
+    e.add_field(name="Non-MFA accounts remain unaffected ✅", value="The developer of Cypher's Laptop sincerely apologises for any inconvience this might cause to you. If you'd want to continue checking your store we __recommend you disable MFA__ if it's possible for you to do so.")
     return e
     #return ErrorEmbed(title="Additional Verification Required", description="Your account has **Multi Factor Authentication (MFA) enabled**.\nRiot Games has sent a 6-digit code to your email, check your email and enter the MFA code below.")
 
