@@ -149,7 +149,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
             v = EnterMultiFactor()
-            await ctx.respond(embed=multifactor_detected(), view=v)
+            await ctx.respond(embed=multifactor_detected())
             await v.wait()
             if v.code is None:
                 return
@@ -212,7 +212,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         except riot_authorization.Exceptions.RiotMultifactorError:
             # No multifactor provided check
             v = EnterMultiFactor()
-            m = await ctx.respond(embed=multifactor_detected(), view=v)
+            m = await ctx.respond(embed=multifactor_detected())
             await v.wait()
             b: discord.ui.Button = v.children[0]
             if v.code is None:
@@ -332,7 +332,7 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
             except riot_authorization.Exceptions.RiotMultifactorError:
                 # No multifactor provided check
                 v = EnterMultiFactor()
-                m = await ctx.respond(embed=multifactor_detected(), view=v)
+                m = await ctx.respond(embed=multifactor_detected())
                 await v.wait()
                 b: discord.ui.Button = v.children[0]
                 if v.code is None:

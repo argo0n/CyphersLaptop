@@ -49,7 +49,7 @@ class ViewStoreFromDaily(discord.ui.Button):
                 except riot_authorization.Exceptions.RiotMultifactorError:
                     # No multifactor provided check
                     v = EnterMultiFactor()
-                    m = await interaction.followup.send(embed=multifactor_detected(), view=v, ephemeral=True, wait=True)
+                    m = await interaction.followup.send(embed=multifactor_detected(), ephemeral=True, wait=True)
                     await v.wait()
                     b: discord.ui.Button = v.children[0]
                     if v.code is None:
