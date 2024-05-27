@@ -189,7 +189,7 @@ class RiotAuth:
             # noinspection SpellCheckingInspection
             headers = {
                 "Accept-Encoding": "deflate, gzip, zstd",
-                "user-agent": "ShooterGame/11 Windows/10.0.22621.1.768.64bit",
+                "user-agent": "RiotGamesApi/24.3.0.3124 rso-auth (Windows;10;;Home, x64) riot_client/0",
                 "Cache-Control": "no-cache",
                 "Accept": "application/json",
                 "X-Riot-ClientVersion": "release-07.03-shipping-11-953184"
