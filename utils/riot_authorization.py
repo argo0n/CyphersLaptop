@@ -188,8 +188,10 @@ class RiotAuth:
         ) as session:
             # noinspection SpellCheckingInspection
             headers = {
-                "Accept-Encoding": "deflate, gzip, zstd",
-                "user-agent": "RiotGamesApi/24.5.0.3551 rso-auth (Windows;10;;Professional, x64) riot_client/0",
+                "Accept-Encoding": "gzip, deflate, br, identity",
+                "Content-Type": "application/json",
+                "Host": "auth.riotgames.com",
+                "user-agent": "RiotClient/90.0.2.1805.3774 rso-auth (Windows;10;;Professional, x64) riot_client/0",
                 "Cache-Control": "no-cache",
                 "Accept": "application/json",
                 "X-Riot-ClientVersion": "release-09.01-shipping-21-2669223"
