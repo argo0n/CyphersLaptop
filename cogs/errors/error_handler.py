@@ -3,7 +3,7 @@ import contextlib
 import discord
 from datetime import datetime
 
-from aiohttp.client_exceptions import ClientResponseError
+from aiohttp import ClientResponseError
 
 from utils.responses import ErrorEmbed, cl_unavailable_riot_sucks
 from utils.time import humanize_timedelta
@@ -81,7 +81,8 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, discord.ApplicationCommandInvokeError):
             error_original = error.original
             if isinstance(error, ClientResponseError):
-                await cl_unavailable_riot_sucks(ctx);
+                handled = True
+                await cl_unavailable_riot_sucks(ctx)
             elif isinstance(error_original, commands.MissingPermissions):
                 handled = True
                 await send_error("Oops!, looks like you don't have enough permission to use this command.", delete_after=5)

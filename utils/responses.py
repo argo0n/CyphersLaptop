@@ -547,4 +547,4 @@ async def cl_unavailable_riot_sucks(ctx: discord.ApplicationContext):
                        description=strings["description"])
     embed.set_footer(text=strings["footer"])
     embed.add_field(name=strings["field_name"], value=strings["field_value"])
-    await ctx.respond(embed=embed);
+    await ctx.respond(embed=embed)
