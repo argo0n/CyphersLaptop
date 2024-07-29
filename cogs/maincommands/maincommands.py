@@ -128,9 +128,10 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         limited = await get_store.check_limited_function(self.client)
+        await (await self.client.fetch_channel(805604591630286918)).send(
+            f"{ctx.author} ({ctx.author.id}) tried to run balance command")
         if limited is True:
             raise WeAreStillDisabled()
-        await (await self.client.fetch_channel(805604591630286918)).send(f"{ctx.author} ({ctx.author.id}) tried to run balance command")
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()
@@ -192,10 +193,10 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         limited = await get_store.check_limited_function(self.client)
-        if limited is True:
-            raise WeAreStillDisabled()
         await (await self.client.fetch_channel(805604591630286918)).send(
             f"{ctx.author} ({ctx.author.id}) tried to run NM command")
+        if limited is True:
+            raise WeAreStillDisabled()
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()
@@ -311,10 +312,10 @@ class MainCommands(AccountManagement, StoreReminder, WishListManager, UpdateSkin
         if not self.ready:
             return await ctx.respond(embed=not_ready(), ephemeral=True)
         limited = await get_store.check_limited_function(self.client)
-        if ctx.author.id != 650647680837484556 and limited is True:
-            raise WeAreStillDisabled()
         await (await self.client.fetch_channel(805604591630286918)).send(
             f"{ctx.author} ({ctx.author.id}) tried to run store command")
+        if ctx.author.id != 650647680837484556 and limited is True:
+            raise WeAreStillDisabled()
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:
             await ctx.defer()
