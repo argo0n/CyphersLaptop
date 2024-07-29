@@ -60,7 +60,7 @@ class AccountManagement(commands.Cog):
         limited = await get_store.check_limited_function(self.client)
         if limited is True:
             raise WeAreStillDisabled()
-        (await self.client.fetch_channel(805604591630286918)).send(
+        await (await self.client.fetch_channel(805604591630286918)).send(
             f"{ctx.author} ({ctx.author.id}) tried to run login command")
         reg_code = get_region_code(region)
         existing_logged_in = await self.dbManager.get_user_by_user_id(ctx.author.id)
@@ -118,7 +118,7 @@ class AccountManagement(commands.Cog):
         if limited is True:
             raise WeAreStillDisabled()
         c = confirm(ctx, self.client, 30.0)
-        (await self.client.fetch_channel(805604591630286918)).send(
+        await (await self.client.fetch_channel(805604591630286918)).send(
             f"{ctx.author} ({ctx.author.id}) tried to run update-password command")
         riot_account = await self.dbManager.get_user_by_user_id(ctx.author.id)
         if riot_account:

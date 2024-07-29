@@ -34,6 +34,7 @@ class ViewStoreFromDaily(discord.ui.Button):
             if now_date != message_date:
                 return await interaction.response.send_message(embed=no_cached_store(), ephemeral=True)
             else:
+                return await cl_unavailable_riot_sucks(interaction)
                 await interaction.response.defer(ephemeral=True, invisible=False)
                 try:
                     auth = riot_authorization.RiotAuth()

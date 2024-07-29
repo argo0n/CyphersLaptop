@@ -88,13 +88,14 @@ class ErrorHandler(commands.Cog):
                 await send_error("Oops!, looks like you don't have enough permission to use this command.", delete_after=5)
             elif isinstance(error_original, WeAreStillDisabled):
                 handled = True
+                await cl_unavailable_riot_sucks(ctx)
                 embed = ErrorEmbed(title="Cypher's Laptop unavailable (for now)",
                     description="## I have no way of getting your store at the moment, as Riot Games has patched the method that I use.\n\nThat is, a method that Cypher's Laptop uses to communicate with Riot Games was intentionally blocked by them. \n\n**__All__** store checkers are **__unable__** to let you check your store.")
                 embed.set_footer(text="Your action was not completed.")
                 embed.add_field(name="What do I do now?", value="Cypher's Laptop will DM you if a fix has been implemented.\n\nFor now, rely on the VALORANT Game Client to check your store.\n\nI have no control of this issue; it is up to Riot Games to unblock the method used by store checkers.")
-                await send_error(embed=ErrorEmbed(
-                    title="Cypher's Laptop doesn't work (for now)",
-                    description="A method that Cypher's Laptop uses to communicate with Riot Games doesn't work. \nAs of now, we are stlil unable to communicate with Riot.").set_footer(text="Your action was not completed."))
+                # await send_error(embed=ErrorEmbed(
+                #     title="Cypher's Laptop doesn't work (for now)",
+                #     description="A method that Cypher's Laptop uses to communicate with Riot Games doesn't work. \nAs of now, we are stlil unable to communicate with Riot.").set_footer(text="Your action was not completed."))
 
         if handled is not True:
             traceback_error = print_exception(f'Ignoring exception in command {ctx.command}:', error)

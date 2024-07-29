@@ -1,5 +1,5 @@
 import json
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 import aiohttp
 import discord
@@ -312,7 +312,7 @@ def help_command(is_dev):
     return embed
 
 
-async def cl_unavailable_riot_sucks(ctx: discord.ApplicationContext):
+async def cl_unavailable_riot_sucks(ctx: Union[discord.ApplicationContext, discord.Interaction]):
     locales = {
         "id": {
             "title": "Cypher's Laptop sementara tidak tersedia",
@@ -547,4 +547,7 @@ async def cl_unavailable_riot_sucks(ctx: discord.ApplicationContext):
                        description=strings["description"])
     embed.set_footer(text=strings["footer"])
     embed.add_field(name=strings["field_name"], value=strings["field_value"])
-    await ctx.respond(embed=embed)
+    if isinstance(ctx, discord.Interaction):
+        await ctx.response.send_message(embed=embed)
+    else:
+        await ctx.respond(embed=embed)
