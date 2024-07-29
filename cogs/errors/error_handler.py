@@ -3,7 +3,7 @@ import contextlib
 import discord
 from datetime import datetime
 
-from aiohttp import ClientResponseError
+from aiohttp.client_exceptions import ClientResponseError
 
 from utils.responses import ErrorEmbed, cl_unavailable_riot_sucks
 from utils.time import humanize_timedelta
