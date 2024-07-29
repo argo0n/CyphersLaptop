@@ -11,7 +11,6 @@ import aiohttp
 from utils.errors import ArgumentBaseError
 from typing import Optional, Union
 
-from utils.responses import ErrorEmbed
 
 p = inflect.engine()
 
