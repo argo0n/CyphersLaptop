@@ -3,10 +3,12 @@ import contextlib
 import discord
 from datetime import datetime
 
+from aiohttp import ClientResponseError
+
 from utils.responses import ErrorEmbed
 from utils.time import humanize_timedelta
 from discord.ext import commands
-from utils.format import print_exception
+from utils.format import print_exception, cl_unavailable_riot_sucks
 from utils.errors import ArgumentBaseError, WeAreStillDisabled
 import json
 import asyncio
@@ -38,6 +40,8 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, ignore):
             handled = True
             return
+        if isinstance(error, ClientResponseError):
+            await cl_unavailable_riot_sucks(ctx);
         if isinstance(error, commands.NoPrivateMessage):
             handled = True
             await send_error("Sowwi, you can't use this command in DMs :(", delete_after=10)
@@ -83,6 +87,10 @@ class ErrorHandler(commands.Cog):
                 await send_error("Oops!, looks like you don't have enough permission to use this command.", delete_after=5)
             elif isinstance(error_original, WeAreStillDisabled):
                 handled = True
+                embed = ErrorEmbed(title="Cypher's Laptop unavailable (for now)",
+                    description="## I have no way of getting your store at the moment, as Riot Games has patched the method that I use.\n\nThat is, a method that Cypher's Laptop uses to communicate with Riot Games was intentionally blocked by them. \n\n**__All__** store checkers are **__unable__** to let you check your store.")
+                embed.set_footer(text="Your action was not completed.")
+                embed.add_field(name="What do I do now?", value="Cypher's Laptop will DM you if a fix has been implemented.\n\nFor now, rely on the VALORANT Game Client to check your store.\n\nI have no control of this issue; it is up to Riot Games to unblock the method used by store checkers.")
                 await send_error(embed=ErrorEmbed(
                     title="Cypher's Laptop doesn't work (for now)",
                     description="A method that Cypher's Laptop uses to communicate with Riot Games doesn't work. \nAs of now, we are stlil unable to communicate with Riot.").set_footer(text="Your action was not completed."))
