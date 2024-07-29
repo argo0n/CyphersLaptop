@@ -40,8 +40,6 @@ class ErrorHandler(commands.Cog):
         if isinstance(error, ignore):
             handled = True
             return
-        if isinstance(error, ClientResponseError):
-            await cl_unavailable_riot_sucks(ctx);
         if isinstance(error, commands.NoPrivateMessage):
             handled = True
             await send_error("Sowwi, you can't use this command in DMs :(", delete_after=10)
@@ -82,7 +80,9 @@ class ErrorHandler(commands.Cog):
             await send_error(error, delete_after=10)
         elif isinstance(error, discord.ApplicationCommandInvokeError):
             error_original = error.original
-            if isinstance(error_original, commands.MissingPermissions):
+            if isinstance(error, ClientResponseError):
+                await cl_unavailable_riot_sucks(ctx);
+            elif isinstance(error_original, commands.MissingPermissions):
                 handled = True
                 await send_error("Oops!, looks like you don't have enough permission to use this command.", delete_after=5)
             elif isinstance(error_original, WeAreStillDisabled):
