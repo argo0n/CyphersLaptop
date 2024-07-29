@@ -5,10 +5,10 @@ from datetime import datetime
 
 from aiohttp import ClientResponseError
 
-from utils.responses import ErrorEmbed
+from utils.responses import ErrorEmbed, cl_unavailable_riot_sucks
 from utils.time import humanize_timedelta
 from discord.ext import commands
-from utils.format import print_exception, cl_unavailable_riot_sucks
+from utils.format import print_exception,
 from utils.errors import ArgumentBaseError, WeAreStillDisabled
 import json
 import asyncio
